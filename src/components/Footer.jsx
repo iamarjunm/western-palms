@@ -35,21 +35,6 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Logo and Social */}
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-2 mb-6">
-              <Image 
-                src="/images/logo-white.png" 
-                alt="Western Palms" 
-                width={40} 
-                height={40} 
-              />
-              <Image 
-                src="/images/logotext-white.png" 
-                alt="" 
-                width={120} 
-                height={32} 
-                className="hidden sm:block"
-              />
-            </Link>
             <p className="mb-4 text-sm opacity-80">
               Handcrafted goods inspired by the natural beauty of the West.
             </p>

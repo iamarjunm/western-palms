@@ -138,14 +138,6 @@ export default function LoginPage() {
                   placeholder="••••••••"
                 />
               </div>
-              <div className="flex justify-end mt-2">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-[#3e554a] hover:text-[#1e3d2f] hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
             </div>
 
             <motion.button
@@ -170,7 +162,7 @@ export default function LoginPage() {
             <p>
               Don't have an account?{" "}
               <Link
-                href="/register"
+                href="/account/register"
                 className="font-medium text-[#1e3d2f] hover:underline"
               >
                 Create one
@@ -219,12 +211,33 @@ export default function LoginPage() {
 
 function Logo({ className }) {
   return (
-    <svg className={className} viewBox="0 0 120 40" fill="currentColor">
-      <path d="M20,10 L40,30 L60,10 L80,30 L100,10 L120,30" stroke="currentColor" strokeWidth="2" fill="none" />
-      <text x="0" y="35" fontFamily="Arial" fontSize="20" fontWeight="bold">WESTERN PALMS</text>
+    <svg
+      className={className}
+      viewBox="0 0 300 50"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20,10 L40,30 L60,10 L80,30 L100,10 L120,30"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+      />
+      <text
+        x="150"
+        y="45"
+        fontFamily="Arial"
+        fontSize="20"
+        fontWeight="bold"
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        WESTERN PALMS
+      </text>
     </svg>
   );
 }
+
 
 function LoadingSpinner() {
   return (

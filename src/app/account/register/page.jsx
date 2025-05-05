@@ -248,7 +248,7 @@ export default function RegisterPage() {
             <p>
               Already have an account?{" "}
               <Link
-                href="/login"
+                href="/account/login"
                 className="font-medium text-[#1e3d2f] hover:underline"
               >
                 Sign in
@@ -307,12 +307,33 @@ export default function RegisterPage() {
 
 function Logo({ className }) {
   return (
-    <svg className={className} viewBox="0 0 120 40" fill="currentColor">
-      <path d="M20,10 L40,30 L60,10 L80,30 L100,10 L120,30" stroke="currentColor" strokeWidth="2" fill="none" />
-      <text x="0" y="35" fontFamily="Arial" fontSize="20" fontWeight="bold">WESTERN PALMS</text>
+    <svg
+      className={className}
+      viewBox="0 0 300 50"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M20,10 L40,30 L60,10 L80,30 L100,10 L120,30"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+      />
+      <text
+        x="150"
+        y="45"
+        fontFamily="Arial"
+        fontSize="20"
+        fontWeight="bold"
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        WESTERN PALMS
+      </text>
     </svg>
   );
 }
+
 
 function CheckIcon({ className }) {
   return (
