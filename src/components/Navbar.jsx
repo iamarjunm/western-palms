@@ -62,64 +62,6 @@ export default function Navbar() {
     setMobileOpen(false);
   };
 
-  // Improved hover handling with timeout
-  useEffect(() => {
-    let shopTimer;
-    let profileTimer;
-
-    const handleShopMouseEnter = () => {
-      clearTimeout(shopTimer);
-      setShopDropdownOpen(true);
-    };
-
-    const handleShopMouseLeave = () => {
-      shopTimer = setTimeout(() => {
-        if (!shopDropdownRef.current?.matches(':hover')) {
-          setShopDropdownOpen(false);
-        }
-      }, 200);
-    };
-
-    const handleProfileMouseEnter = () => {
-      clearTimeout(profileTimer);
-      setProfileDropdownOpen(true);
-    };
-
-    const handleProfileMouseLeave = () => {
-      profileTimer = setTimeout(() => {
-        if (!profileDropdownRef.current?.matches(':hover')) {
-          setProfileDropdownOpen(false);
-        }
-      }, 200);
-    };
-
-    const shopElement = shopDropdownRef.current;
-    const profileElement = profileDropdownRef.current;
-
-    if (shopElement) {
-      shopElement.addEventListener('mouseenter', handleShopMouseEnter);
-      shopElement.addEventListener('mouseleave', handleShopMouseLeave);
-    }
-
-    if (profileElement) {
-      profileElement.addEventListener('mouseenter', handleProfileMouseEnter);
-      profileElement.addEventListener('mouseleave', handleProfileMouseLeave);
-    }
-
-    return () => {
-      if (shopElement) {
-        shopElement.removeEventListener('mouseenter', handleShopMouseEnter);
-        shopElement.removeEventListener('mouseleave', handleShopMouseLeave);
-      }
-      if (profileElement) {
-        profileElement.removeEventListener('mouseenter', handleProfileMouseEnter);
-        profileElement.removeEventListener('mouseleave', handleProfileMouseLeave);
-      }
-      clearTimeout(shopTimer);
-      clearTimeout(profileTimer);
-    };
-  }, []);
-
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -158,6 +100,23 @@ export default function Navbar() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  // Toggle functions for mobile dropdowns
+  const toggleShopDropdown = () => {
+    setShopDropdownOpen(!shopDropdownOpen);
+    // Close profile dropdown when opening shop dropdown
+    if (!shopDropdownOpen) {
+      setProfileDropdownOpen(false);
+    }
+  };
+
+  const toggleProfileDropdown = () => {
+    setProfileDropdownOpen(!profileDropdownOpen);
+    // Close shop dropdown when opening profile dropdown
+    if (!profileDropdownOpen) {
+      setShopDropdownOpen(false);
+    }
+  };
 
   return (
     <header 
@@ -325,7 +284,6 @@ export default function Navbar() {
             </AnimatePresence>
           </div>
         </nav>
-
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-4 text-2xl text-[#1e3d2f]">
           <Link href="/wishlist" className="relative hover:text-[#FF6B6B] transition-colors">
@@ -367,45 +325,55 @@ export default function Navbar() {
               {/* Mobile Shop Dropdown */}
               <div className="border-b border-white/20 pb-2">
                 <button 
-                  onClick={() => setShopDropdownOpen(!shopDropdownOpen)}
+                  onClick={toggleShopDropdown}
                   className="flex items-center justify-between w-full py-3 text-[#1e3d2f] text-base font-bold"
                 >
                   <span>Shop</span>
                   <FiChevronDown className={`transition-transform ${shopDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {shopDropdownOpen && (
-                  <div className="pl-4 space-y-1">
-                    {shopCategories.map((category) => (
-                      <div key={category.label} className="border-t border-white/20 pt-1">
-                        {category.subItems ? (
-                          <>
-                            <p className="font-bold py-2">{category.label}</p>
-                            <div className="grid grid-cols-2 gap-1 pl-2">
-                              {category.subItems.map((item) => (
-                                <Link
-                                  key={item.label}
-                                  href={item.href}
-                                  className="block py-2 text-sm text-[#3e554a] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
-                                  onClick={() => setMobileOpen(false)}
-                                >
-                                  {item.label}
-                                </Link>
-                              ))}
-                            </div>
-                          </>
-                        ) : (
-                          <Link
-                            href={category.href}
-                            className="block py-2 font-medium text-[#1e3d2f] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
-                            onClick={() => setMobileOpen(false)}
-                          >
-                            {category.label}
-                          </Link>
-                        )}
+                <AnimatePresence>
+                  {shopDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pl-4 space-y-1">
+                        {shopCategories.map((category) => (
+                          <div key={category.label} className="border-t border-white/20 pt-1">
+                            {category.subItems ? (
+                              <>
+                                <p className="font-bold py-2">{category.label}</p>
+                                <div className="grid grid-cols-2 gap-1 pl-2">
+                                  {category.subItems.map((item) => (
+                                    <Link
+                                      key={item.label}
+                                      href={item.href}
+                                      className="block py-2 text-sm text-[#3e554a] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
+                                      onClick={() => setMobileOpen(false)}
+                                    >
+                                      {item.label}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </>
+                            ) : (
+                              <Link
+                                href={category.href}
+                                className="block py-2 font-medium text-[#1e3d2f] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
+                                onClick={() => setMobileOpen(false)}
+                              >
+                                {category.label}
+                              </Link>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Other Mobile Links */}
@@ -429,44 +397,54 @@ export default function Navbar() {
               {/* Mobile Profile Dropdown */}
               <div className="border-t border-white/20 pt-2">
                 <button 
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  onClick={toggleProfileDropdown}
                   className="flex items-center justify-between w-full py-3 text-[#1e3d2f] text-base font-bold"
                 >
                   <span>Account</span>
                   <FiChevronDown className={`transition-transform ${profileDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
-                {profileDropdownOpen && (
-                  <div className="pl-4 space-y-1">
-                    {profileItems.map((item, index) => (
-                      <motion.div
-                        key={item.label}
-                        initial={{ x: -10, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ delay: 0.1 + (index * 0.05) }}
-                      >
-                        {item.href ? (
-                          <Link
-                            href={item.href}
-                            className="block py-2 text-[#3e554a] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
-                            onClick={() => setMobileOpen(false)}
+                <AnimatePresence>
+                  {profileDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pl-4 space-y-1">
+                        {profileItems.map((item, index) => (
+                          <motion.div
+                            key={item.label}
+                            initial={{ x: -10, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.1 + (index * 0.05) }}
                           >
-                            {item.label}
-                          </Link>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              item.action();
-                              setMobileOpen(false);
-                            }}
-                            className="block w-full text-left py-2 text-[#3e554a] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
-                          >
-                            {item.label}
-                          </button>
-                        )}
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+                            {item.href ? (
+                              <Link
+                                href={item.href}
+                                className="block py-2 text-[#3e554a] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
+                                onClick={() => setMobileOpen(false)}
+                              >
+                                {item.label}
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  item.action();
+                                  setMobileOpen(false);
+                                }}
+                                className="block w-full text-left py-2 text-[#3e554a] hover:bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] px-2 rounded transition-colors"
+                              >
+                                {item.label}
+                              </button>
+                            )}
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </motion.div>
