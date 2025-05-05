@@ -188,12 +188,6 @@ export async function createShopifyOrder(orderData) {
           country_code: orderData.shippingAddress.countryCode 
         })
       },
-      shipping_lines: orderData.shippingLines.map(shippingOption => ({
-        title: shippingOption.title,
-        price: shippingOption.price,  // Ensure this is the correct shipping price
-        code: shippingOption.code || 'standard',
-        ...(shippingOption.carrierId && { carrier_identifier: shippingOption.carrierId })
-      })),
       financial_status: 'paid',  // Payment status is always 'paid'
       note: orderData.note,
       tags: orderData.tags
