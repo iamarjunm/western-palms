@@ -12,84 +12,72 @@ const categories = [
     slug: "dresses",
     icon: "🌸",
     color: "from-[#FF9E9E] to-[#FFD1DC]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Tops",
     slug: "tops",
     icon: "☀️",
     color: "from-[#FFBE0B] to-[#FF9E00]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "T-Shirts",
     slug: "t-shirts",
     icon: "👕",
     color: "from-[#4ECDC4] to-[#A2D729]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Shirts",
     slug: "shirts",
     icon: "⛅",
     color: "from-[#3A86FF] to-[#4ECDC4]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Tank Tops",
     slug: "tank-tops",
     icon: "🔥",
     color: "from-[#FF8A5B] to-[#FF6B6B]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Co-ords",
     slug: "co-ords",
     icon: "✨",
     color: "from-[#8338EC] to-[#3A86FF]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Jeans",
     slug: "jeans",
     icon: "👖",
     color: "from-[#1e3d2f] to-[#3e554a]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Pants",
     slug: "pants",
     icon: "🏜️",
     color: "from-[#D4B8C7] to-[#E2C6D6]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Shorts",
     slug: "shorts",
     icon: "🩳",
     color: "from-[#FFD1DC] to-[#FF9E9E]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Skirts",
     slug: "skirts",
     icon: "💃",
     color: "from-[#A2D729] to-[#4ECDC4]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Jeggings",
     slug: "jeggings",
     icon: "👯",
     color: "from-[#8B3E3E] to-[#FF6B6B]",
-    image: "https://picsum.photos/id/1043/800/800"
   },
   {
     name: "Cargo",
     slug: "cargo",
     icon: "🪖",
     color: "from-[#5C4200] to-[#FFBE0B]",
-    image: "https://picsum.photos/id/1043/800/800"
   }
 ];
 
@@ -169,16 +157,6 @@ export default function ShopByCategory() {
                     hoveredCategory !== null && hoveredCategory !== index ? "opacity-50" : "opacity-90"
                   }`}
                 />
-
-                {/* Category Image */}
-                <div className="absolute inset-0 mix-blend-overlay opacity-40">
-                  <Image
-                    src={category.image}
-                    alt={category.name}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
 
                 {/* Emoji Icon */}
                 <motion.div
