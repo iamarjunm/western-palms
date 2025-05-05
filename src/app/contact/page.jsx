@@ -1,0 +1,306 @@
+"use client";
+
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { FiMail, FiPhone, FiMapPin, FiSend } from "react-icons/fi";
+import { useInView } from "react-intersection-observer";
+import Image from "next/image";
+import { useEffect } from "react";
+
+export default function ContactPage() {
+  const [ref, inView] = useInView({
+    threshold: 0.5,
+    triggerOnce: false
+  });
+
+  // Animated counter for customer satisfaction
+  const satisfactionCount = useMotionValue(0);
+  const roundedSatisfaction = useTransform(satisfactionCount, Math.round);
+
+  useEffect(() => {
+    if (inView) {
+      animate(satisfactionCount, 98, { duration: 3 });
+    }
+  }, [inView]);
+
+  // Text animation variants
+  const textVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const letterVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { 
+        duration: 0.5, 
+        ease: [0.2, 0.65, 0.3, 0.9] 
+      }
+    }
+  };
+
+  // Split text into letters for animation
+  const title1 = "Desert";
+  const title2 = "Connect With Us";
+
+  return (
+    <div 
+      ref={ref}
+      className="relative overflow-hidden bg-gradient-to-br from-[#FFF5E6] via-[#FFE8D6] to-[#F8E1C8]"
+    >
+      {/* Floating desert elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(15)].map((_, i) => {
+          const colors = ["#FF6B6B", "#4ECDC4", "#FFBE0B", "#8338EC", "#3A86FF"];
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          const size = Math.random() * 200 + 50;
+          
+          return (
+            <motion.div
+              key={i}
+              className="absolute rounded-full mix-blend-multiply opacity-10"
+              style={{
+                width: size,
+                height: size,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                backgroundColor: randomColor
+              }}
+              animate={{
+                y: [0, Math.random() * 200 - 100],
+                x: [0, Math.random() * 200 - 100],
+                rotate: [0, Math.random() * 360],
+                scale: [1, 1.2, 1]
+              }}
+              transition={{
+                duration: 20 + Math.random() * 40,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "easeInOut"
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Main content */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        {/* Animated title */}
+        <motion.div
+          initial="hidden"
+          animate={inView ? "visible" : "hidden"}
+          variants={textVariants}
+          className="text-center mb-16"
+        >
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-4">
+            <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#8338EC] overflow-hidden">
+              {title1.split("").map((letter, index) => (
+                <motion.span
+                  key={index}
+                  className="inline-block"
+                  variants={letterVariants}
+                >
+                  {letter === " " ? "\u00A0" : letter}
+                </motion.span>
+              ))}
+            </motion.span>
+            <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#3A86FF] to-[#4ECDC4] overflow-hidden">
+              {title2.split("").map((letter, index) => (
+                <motion.span
+                  key={index}
+                  className="inline-block"
+                  variants={letterVariants}
+                >
+                  {letter === " " ? "\u00A0" : letter}
+                </motion.span>
+              ))}
+            </motion.span>
+          </h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="text-xl text-[#5A5A5A] max-w-2xl mx-auto"
+          >
+            We'd love to hear from you! Reach out for styling advice, order help, or just to say hello.
+          </motion.p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Contact Form */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30"
+          >
+            <div className="p-8 sm:p-10">
+              <h2 className="text-2xl font-bold text-[#1e3d2f] mb-6">Send Us a Message</h2>
+              
+              <form className="space-y-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-[#3e554a] mb-1">
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
+                    placeholder="Enter your name"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-[#3e554a] mb-1">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
+                    placeholder="your@email.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-[#3e554a] mb-1">
+                    Subject
+                  </label>
+                  <select
+                    id="subject"
+                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
+                  >
+                    <option>Select a topic</option>
+                    <option>Order Inquiry</option>
+                    <option>Size & Fit Help</option>
+                    <option>Returns & Exchanges</option>
+                    <option>Wholesale Inquiry</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-[#3e554a] mb-1">
+                    Your Message
+                  </label>
+                  <textarea
+                    id="message"
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
+                    placeholder="Tell us how we can help..."
+                  />
+                </div>
+
+                <motion.button
+                  type="submit"
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B] text-white px-6 py-4 rounded-lg font-bold uppercase tracking-wider hover:opacity-90 transition-all duration-300 shadow-lg"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Send Message <FiSend className="text-lg" />
+                </motion.button>
+              </form>
+            </div>
+          </motion.div>
+
+          {/* Contact Info */}
+          <div className="space-y-8">
+            {/* Satisfaction Guarantee */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30 p-8"
+            >
+              <div className="flex items-start gap-4">
+                <div className="bg-[#FFE8D6] p-3 rounded-full">
+                  <FiMail className="text-2xl text-[#FF6B6B]" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-[#1e3d2f] mb-2">Our Promise</h3>
+                  <p className="text-[#3e554a] mb-4">
+                    We respond to all inquiries within 24 hours. Your satisfaction is our priority.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B]">
+                      <motion.span>{roundedSatisfaction}</motion.span>%
+                    </p>
+                    <p className="text-sm text-[#3e554a]">Customer<br/>Satisfaction</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Contact Methods */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30 p-8"
+            >
+              <h3 className="text-xl font-bold text-[#1e3d2f] mb-6">Other Ways to Connect</h3>
+              
+              <div className="space-y-6">
+                {[
+                  {
+                    icon: <FiMail className="text-2xl text-[#FF6B6B]" />,
+                    title: "Email Us",
+                    content: "westernpalms29@gmail.com",
+                    action: "mailto:westernpalms29@gmail.com"
+                  },
+                ].map((item, index) => (
+                  <motion.div 
+                    key={index}
+                    whileHover={{ x: 5 }}
+                    className="flex items-start gap-4"
+                  >
+                    <div className="bg-[#FFE8D6] p-3 rounded-full flex-shrink-0">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-[#1e3d2f]">{item.title}</h4>
+                      <a 
+                        href={item.action} 
+                        className="text-[#3e554a] hover:text-[#FF6B6B] transition-colors block"
+                      >
+                        {item.content}
+                      </a>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* Decorative cactus border */}
+      <div className="h-16 bg-[#3e554a] flex items-center justify-center overflow-hidden">
+        <motion.div 
+          className="flex gap-8 text-3xl text-[#FFE8D6]"
+          animate={{
+            x: [0, -100],
+            transition: {
+              duration: 30,
+              repeat: Infinity,
+              ease: "linear"
+            }
+          }}
+        >
+          {[...Array(10)].map((_, i) => (
+            <span key={i}>🌵</span>
+          ))}
+        </motion.div>
+      </div>
+    </div>
+  );
+}
