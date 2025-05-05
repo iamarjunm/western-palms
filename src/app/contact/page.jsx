@@ -170,7 +170,7 @@ export default function ContactPage() {
               transition={{ delay: 0.9 }}
               className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30 p-8"
             >
-              <h3 className="text-xl font-bold text-[#1e3d2f] mb-6">Way to Connect</h3>
+              <h3 className="text-xl font-bold text-[#1e3d2f] mb-6">Ways to Connect</h3>
               
               <div className="space-y-6">
                 {[
@@ -179,6 +179,11 @@ export default function ContactPage() {
                     title: "Email Us",
                     content: "westernpalms29@gmail.com",
                     action: "mailto:westernpalms29@gmail.com"
+                  },
+                  {
+                    icon: <FiPhone className="text-2xl text-[#3A86FF]" />,
+                    title: "Whatsapp Us",
+                    content: "+91 9599296553",
                   },
                 ].map((item, index) => (
                   <motion.div 
