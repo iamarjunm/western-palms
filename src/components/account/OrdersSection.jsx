@@ -167,7 +167,7 @@ const OrdersSection = () => {
             <div className="flex justify-between items-center pt-4 border-t border-[#d1d9d5]/30">
               <p className="font-medium text-[#1e3d2f]">{formatCurrency(order.total)}</p>
               <Link 
-                href={`/account/orders/${order.id}`}
+                href={`/orders/${order.id}`}
                 className="text-[#1e3d2f] hover:text-[#3e554a] flex items-center text-sm font-medium"
               >
                 View Details <ArrowRight className="ml-1" size={16} />

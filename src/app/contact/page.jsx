@@ -134,85 +134,9 @@ export default function ContactPage() {
           </motion.p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Form */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30"
-          >
-            <div className="p-8 sm:p-10">
-              <h2 className="text-2xl font-bold text-[#1e3d2f] mb-6">Send Us a Message</h2>
-              
-              <form className="space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-[#3e554a] mb-1">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
-                    placeholder="Enter your name"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-[#3e554a] mb-1">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
-                    placeholder="your@email.com"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-[#3e554a] mb-1">
-                    Subject
-                  </label>
-                  <select
-                    id="subject"
-                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
-                  >
-                    <option>Select a topic</option>
-                    <option>Order Inquiry</option>
-                    <option>Size & Fit Help</option>
-                    <option>Returns & Exchanges</option>
-                    <option>Wholesale Inquiry</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-[#3e554a] mb-1">
-                    Your Message
-                  </label>
-                  <textarea
-                    id="message"
-                    rows={4}
-                    className="w-full px-4 py-3 rounded-lg border border-[#d1d9d5] focus:ring-2 focus:ring-[#4ECDC4] focus:border-transparent bg-white/70"
-                    placeholder="Tell us how we can help..."
-                  />
-                </div>
-
-                <motion.button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B] text-white px-6 py-4 rounded-lg font-bold uppercase tracking-wider hover:opacity-90 transition-all duration-300 shadow-lg"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Send Message <FiSend className="text-lg" />
-                </motion.button>
-              </form>
-            </div>
-          </motion.div>
-
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-12">
           {/* Contact Info */}
-          <div className="space-y-8">
+          <div className="space-y-8 mx-auto max-w-2xl">
             {/* Satisfaction Guarantee */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -246,7 +170,7 @@ export default function ContactPage() {
               transition={{ delay: 0.9 }}
               className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30 p-8"
             >
-              <h3 className="text-xl font-bold text-[#1e3d2f] mb-6">Other Ways to Connect</h3>
+              <h3 className="text-xl font-bold text-[#1e3d2f] mb-6">Way to Connect</h3>
               
               <div className="space-y-6">
                 {[
@@ -278,7 +202,6 @@ export default function ContactPage() {
                 ))}
               </div>
             </motion.div>
-
           </div>
         </div>
       </div>
