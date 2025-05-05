@@ -32,16 +32,16 @@ export default function Navbar() {
     {
       label: "Categories",
       subItems: [
-        { label: "Dresses", href: "/categories/dresses" },
-        { label: "Tops", href: "/categories/tops" },
-        { label: "T-Shirts", href: "/categories/t-shirts" },
-        { label: "Shirts", href: "/categories/shirts" },
-        { label: "Tank Tops", href: "/categories/tank-tops" },
-        { label: "Co-ords", href: "/categories/co-ords" },
-        { label: "Jeans", href: "/categories/jeans" },
-        { label: "Pants", href: "/categories/pants" },
-        { label: "Shorts", href: "/categories/shorts" },
-        { label: "Skirts", href: "/categories/skirts" }
+        { label: "Dresses", href: "/shop?category=dresses" },
+        { label: "Tops", href: "/shop?category=tops" },
+        { label: "T-Shirts", href: "/shop?category=t-shirts" },
+        { label: "Shirts", href: "/shop?category=shirts" },
+        { label: "Tank Tops", href: "/shop?category=tank-tops" },
+        { label: "Co-ords", href: "/shop?category=co-ords" },
+        { label: "Jeans", href: "/shop?category=jeans" },
+        { label: "Pants", href: "/shop?category=pants" },
+        { label: "Shorts", href: "/shop?category=shorts" },
+        { label: "Skirts", href: "/shop?category=skirts" }
       ]
     }
   ];

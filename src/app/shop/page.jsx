@@ -1,41 +1,70 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
 import ProductGrid from "@/components/ProductGrid";
-import { fetchProducts } from "@/lib/fetchProducts";
+import { fetchProducts, fetchProductsByCategory } from "@/lib/fetchProducts";
 
 export default function ShopPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]); // Store all products separately
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
   const [priceRange, setPriceRange] = useState([0, 4000]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [categories, setCategories] = useState(["All"]);
+  const [currentCollection, setCurrentCollection] = useState(null);
+
+  // Manually defined categories
+  const categories = [
+    { label: "All", href: "/shop" },
+    { label: "Dresses", href: "/shop?category=dresses" },
+    { label: "Tops", href: "/shop?category=tops" },
+    { label: "T-Shirts", href: "/shop?category=t-shirts" },
+    { label: "Shirts", href: "/shop?category=shirts" },
+    { label: "Tank Tops", href: "/shop?category=tank-tops" },
+    { label: "Co-ords", href: "/shop?category=co-ords" },
+    { label: "Jeans", href: "/shop?category=jeans" },
+    { label: "Pants", href: "/shop?category=pants" },
+    { label: "Shorts", href: "/shop?category=shorts" },
+    { label: "Skirts", href: "/shop?category=skirts" }
+  ];
+
+  // Get category from URL
+  const urlCategory = searchParams.get('category');
 
   useEffect(() => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const { products } = await fetchProducts();
         
-        console.log('Fetched products:', products); // Debug log
-        
-        if (!products || products.length === 0) {
-          console.warn('No products received from Shopify');
-          return;
+        if (urlCategory) {
+          // Fetch products by category
+          const result = await fetchProductsByCategory(urlCategory);
+          
+          if (result) {
+            setCurrentCollection(result.collection);
+            setAllProducts(result.products);
+            setProducts(result.products);
+            // Set the selected category
+            setSelectedCategory(result.collection.title);
+          }
+        } else {
+          // Fetch all products
+          const { products } = await fetchProducts();
+          
+          if (!products || products.length === 0) {
+            console.warn('No products received from Shopify');
+            return;
+          }
+          
+          setCurrentCollection(null);
+          setAllProducts(products);
+          setProducts(products);
+          setSelectedCategory("All");
         }
-  
-        // Extract unique categories
-        const uniqueCategories = ["All", ...new Set(
-          products.map(product => product.productType).filter(Boolean)
-        )];
-        
-        setAllProducts(products); // Store all products
-        setProducts(products); // Initialize filtered products
-        setCategories(uniqueCategories);
       } catch (error) {
         console.error("Failed to load products:", error);
       } finally {
@@ -44,16 +73,16 @@ export default function ShopPage() {
     };
   
     loadProducts();
-  }, []);
+  }, [urlCategory]);
 
   // Filter and sort products
   useEffect(() => {
     if (loading) return;
 
-    let filteredProducts = [...allProducts]; // Start with all products
+    let filteredProducts = [...allProducts];
 
-    // Filter by category
-    if (selectedCategory !== "All") {
+    // Filter by category (only when not using URL category)
+    if (!urlCategory && selectedCategory !== "All") {
       filteredProducts = filteredProducts.filter(
         product => product.productType === selectedCategory
       );
@@ -76,17 +105,15 @@ export default function ShopPage() {
         filteredProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
         break;
       case "newest":
-        // Assuming newer products have higher IDs (simplified)
         filteredProducts.sort((a, b) => b.id.localeCompare(a.id));
         break;
       default:
-        // Default sorting (newest)
         filteredProducts.sort((a, b) => b.id.localeCompare(a.id));
         break;
     }
 
     setProducts(filteredProducts);
-  }, [selectedCategory, sortOption, priceRange, loading, allProducts]);
+  }, [selectedCategory, sortOption, priceRange, loading, allProducts, urlCategory]);
 
   // Update price range when products load
   useEffect(() => {
@@ -104,29 +131,53 @@ export default function ShopPage() {
     setPriceRange(newPriceRange);
   };
 
+  const CategoryButton = ({ category }) => {
+    const isActive = urlCategory 
+      ? (currentCollection?.title.toLowerCase() === category.label.toLowerCase())
+      : (selectedCategory === category.label);
+    
+    return (
+      <a
+        href={category.href}
+        className={`block w-full text-left px-3 py-2 rounded-md transition-colors ${
+          isActive
+            ? 'bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] text-[#1e3d2f] font-medium'
+            : 'text-[#3e554a] hover:bg-white/50'
+        }`}
+      >
+        {category.label}
+      </a>
+    );
+  };
+
+  const HeroSection = () => (
+    <div className="relative bg-gradient-to-r from-[#FF8A5B]/20 to-[#4ECDC4]/20 py-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto text-center">
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1e3d2f] mb-4"
+        >
+          {currentCollection ? currentCollection.title : 'Western Palms Shop'}
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="text-lg md:text-xl text-[#3e554a] max-w-3xl mx-auto"
+        >
+          {currentCollection 
+            ? `Explore our ${currentCollection.title.toLowerCase()} collection`
+            : 'Discover our handcrafted collections inspired by the beauty of the Southwest'}
+        </motion.p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-gradient-to-b from-[#FFE8D6] to-[#F8E1C8]/50 min-h-screen">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-[#FF8A5B]/20 to-[#4ECDC4]/20 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1e3d2f] mb-4"
-          >
-            Western Palms Shop
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-lg md:text-xl text-[#3e554a] max-w-3xl mx-auto"
-          >
-            Discover our handcrafted collections inspired by the beauty of the Southwest
-          </motion.p>
-        </div>
-      </div>
+      <HeroSection />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -141,17 +192,7 @@ export default function ShopPage() {
                 <h4 className="font-medium text-[#1e3d2f] mb-3">Category</h4>
                 <div className="space-y-2">
                   {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`block w-full text-left px-3 py-2 rounded-md transition-colors ${
-                        selectedCategory === category
-                          ? 'bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] text-[#1e3d2f] font-medium'
-                          : 'text-[#3e554a] hover:bg-white/50'
-                      }`}
-                    >
-                      {category || "Uncategorized"}
-                    </button>
+                    <CategoryButton key={category.label} category={category} />
                   ))}
                 </div>
               </div>
@@ -307,20 +348,18 @@ export default function ShopPage() {
                     <h4 className="font-medium text-[#1e3d2f] mb-3">Category</h4>
                     <div className="space-y-2">
                       {categories.map((category) => (
-                        <button
-                          key={category}
-                          onClick={() => {
-                            setSelectedCategory(category);
-                            setMobileFiltersOpen(false);
-                          }}
+                        <a
+                          key={category.label}
+                          href={category.href}
+                          onClick={() => setMobileFiltersOpen(false)}
                           className={`block w-full text-left px-3 py-2 rounded-md transition-colors ${
-                            selectedCategory === category
+                            (urlCategory ? (currentCollection?.title.toLowerCase() === category.label.toLowerCase()) : (selectedCategory === category.label))
                               ? 'bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] text-[#1e3d2f] font-medium'
                               : 'text-[#3e554a] hover:bg-white/50'
                           }`}
                         >
-                          {category || "Uncategorized"}
-                        </button>
+                          {category.label}
+                        </a>
                       ))}
                     </div>
                   </div>
@@ -378,21 +417,12 @@ export default function ShopPage() {
                 </div>
 
                 <div className="p-4 border-t border-[#d1d9d5]">
-                  <button
-                    onClick={() => {
-                      setSelectedCategory("All");
-                      setSortOption("newest");
-                      // Reset to min/max of all products
-                      const prices = allProducts.map(p => parseFloat(p.price));
-                      const minPrice = Math.min(...prices);
-                      const maxPrice = Math.max(...prices);
-                      setPriceRange([minPrice, maxPrice]);
-                      setMobileFiltersOpen(false);
-                    }}
-                    className="w-full bg-gradient-to-r from-[#FF6B6B] to-[#FF8A5B] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
+                  <a
+                    href="/shop"
+                    className="w-full bg-gradient-to-r from-[#FF6B6B] to-[#FF8A5B] text-white px-6 py-3 rounded-lg shadow-md hover:shadow-lg transition-all text-center block"
                   >
                     Reset All Filters
-                  </button>
+                  </a>
                 </div>
               </motion.div>
             </div>
