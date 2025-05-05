@@ -39,7 +39,7 @@ export default function Footer() {
               Handcrafted goods inspired by the natural beauty of the West.
             </p>
             <div className="flex gap-4 mt-6">
-              <a href="#" aria-label="Instagram" className="hover:text-[#dcd6cf] transition-colors">
+              <a href="https://www.instagram.com/western_palms/" aria-label="Instagram" className="hover:text-[#dcd6cf] transition-colors">
                 <FiInstagram className="text-xl" />
               </a>
             </div>

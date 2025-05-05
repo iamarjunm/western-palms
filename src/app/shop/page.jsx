@@ -1,147 +1,108 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ProductGrid from "@/components/ProductGrid";
-import { fetchProducts, fetchProductsByCategory } from "@/lib/fetchProducts";
+import { fetchProducts } from "@/lib/fetchProducts";
 
 export default function ShopPage() {
   const [products, setProducts] = useState([]);
-  const [allProducts, setAllProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]); // Store all products separately
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortOption, setSortOption] = useState("newest");
   const [priceRange, setPriceRange] = useState([0, 4000]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [categories, setCategories] = useState(["All"]);
-  const [collectionData, setCollectionData] = useState(null);
 
-// Load initial products and categories
-useEffect(() => {
-  const loadInitialData = async () => {
-    try {
-      setLoading(true);
-      const { products } = await fetchProducts();
-      
-      if (!products || products.length === 0) {
-        console.warn('No products received from Shopify');
-        return;
-      }
-
-      // First get all unique product types
-      const productTypes = [...new Set(
-        products.map(product => product.productType).filter(Boolean)
-      )];
-      
-      // Create categories array with "All" and product types
-      setAllProducts(products);
-      setCategories(["All", ...productTypes]);
-      
-      // Set initial products
-      const sortedProducts = sortProducts(products, sortOption);
-      setProducts(sortedProducts);
-      
-      // Calculate initial price range
-      const prices = products.map(p => parseFloat(p.price));
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      setPriceRange([minPrice, maxPrice]);
-    } catch (error) {
-      console.error("Failed to load products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadInitialData();
-}, []);
-  // Sort products function
-  const sortProducts = useCallback((productsToSort, sortMethod) => {
-    const sorted = [...productsToSort];
-    switch (sortMethod) {
-      case "price-low":
-        return sorted.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
-      case "price-high":
-        return sorted.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
-      case "newest":
-      default:
-        return sorted.sort((a, b) => b.id.localeCompare(a.id));
-    }
-  }, []);
-
-  // Load products by category when selectedCategory changes
   useEffect(() => {
-    if (selectedCategory === "All") {
-      const sorted = sortProducts(allProducts, sortOption);
-      setProducts(sorted);
-      setCollectionData(null);
-      return;
-    }
-
-    const loadProductsByCategory = async () => {
+    const loadProducts = async () => {
       try {
         setLoading(true);
-        const result = await fetchProductsByCategory(selectedCategory.toLowerCase());
+        const { products } = await fetchProducts();
         
-        if (result) {
-          setCollectionData({
-            id: result.collection.id,
-            title: result.collection.title,
-            handle: result.collection.handle
-          });
-          const sorted = sortProducts(result.products, sortOption);
-          setProducts(sorted);
-        } else {
-          console.warn(`No products found for category: ${selectedCategory}`);
+        console.log('Fetched products:', products); // Debug log
+        
+        if (!products || products.length === 0) {
+          console.warn('No products received from Shopify');
+          return;
         }
+  
+        // Extract unique categories
+        const uniqueCategories = ["All", ...new Set(
+          products.map(product => product.productType).filter(Boolean)
+        )];
+        
+        setAllProducts(products); // Store all products
+        setProducts(products); // Initialize filtered products
+        setCategories(uniqueCategories);
       } catch (error) {
-        console.error(`Failed to load products for category ${selectedCategory}:`, error);
+        console.error("Failed to load products:", error);
       } finally {
         setLoading(false);
       }
     };
+  
+    loadProducts();
+  }, []);
 
-    loadProductsByCategory();
-  }, [selectedCategory, sortProducts]); // Only re-run when selectedCategory changes
-
-  // Apply sorting when sortOption changes
-  useEffect(() => {
-    if (loading) return;
-    
-    setProducts(prevProducts => sortProducts(prevProducts, sortOption));
-  }, [sortOption, sortProducts, loading]);
-
-  useEffect(() => {
-    console.log('Current categories:', categories);
-    console.log('Current products:', products);
-  }, [categories, products]);
-
-  // Apply price filtering
+  // Filter and sort products
   useEffect(() => {
     if (loading) return;
 
-    const sourceProducts = selectedCategory === "All" ? allProducts : products;
-    const filtered = sourceProducts.filter(product => {
-      const price = parseFloat(product.price);
-      return price >= priceRange[0] && price <= priceRange[1];
-    });
+    let filteredProducts = [...allProducts]; // Start with all products
 
-    // Only update if the filtered list actually changed
-    setProducts(prevProducts => {
-      if (JSON.stringify(prevProducts) !== JSON.stringify(filtered)) {
-        return filtered;
+    // Filter by category
+    if (selectedCategory !== "All") {
+      filteredProducts = filteredProducts.filter(
+        product => product.productType === selectedCategory
+      );
+    }
+
+    // Filter by price range
+    filteredProducts = filteredProducts.filter(
+      product => {
+        const price = parseFloat(product.price);
+        return price >= priceRange[0] && price <= priceRange[1];
       }
-      return prevProducts;
-    });
-  }, [priceRange, loading, selectedCategory, allProducts]);
+    );
 
-  // Rest of your component remains the same...
+    // Sort products
+    switch (sortOption) {
+      case "price-low":
+        filteredProducts.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+        break;
+      case "price-high":
+        filteredProducts.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+        break;
+      case "newest":
+        // Assuming newer products have higher IDs (simplified)
+        filteredProducts.sort((a, b) => b.id.localeCompare(a.id));
+        break;
+      default:
+        // Default sorting (newest)
+        filteredProducts.sort((a, b) => b.id.localeCompare(a.id));
+        break;
+    }
+
+    setProducts(filteredProducts);
+  }, [selectedCategory, sortOption, priceRange, loading, allProducts]);
+
+  // Update price range when products load
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      const prices = allProducts.map(p => parseFloat(p.price));
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      setPriceRange([minPrice, maxPrice]);
+    }
+  }, [allProducts]);
+
   const handlePriceRangeChange = (index, value) => {
     const newPriceRange = [...priceRange];
     newPriceRange[index] = parseInt(value);
     setPriceRange(newPriceRange);
   };
-
 
   return (
     <div className="bg-gradient-to-b from-[#FFE8D6] to-[#F8E1C8]/50 min-h-screen">
@@ -176,24 +137,24 @@ useEffect(() => {
               <h3 className="font-bold text-lg text-[#1e3d2f] mb-4">Filters</h3>
               
               {/* Category Filter */}
-<div className="mb-6">
-  <h4 className="font-medium text-[#1e3d2f] mb-3">Category</h4>
-  <div className="space-y-2">
-    {categories.map((category) => (
-      <button
-        key={category}
-        onClick={() => setSelectedCategory(category)}
-        className={`block w-full text-left px-3 py-2 rounded-md transition-colors ${
-          selectedCategory === category
-            ? 'bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] text-[#1e3d2f] font-medium'
-            : 'text-[#3e554a] hover:bg-white/50'
-        }`}
-      >
-        {category || "Uncategorized"}
-      </button>
-    ))}
-  </div>
-</div>
+              <div className="mb-6">
+                <h4 className="font-medium text-[#1e3d2f] mb-3">Category</h4>
+                <div className="space-y-2">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`block w-full text-left px-3 py-2 rounded-md transition-colors ${
+                        selectedCategory === category
+                          ? 'bg-gradient-to-r from-[#FFE8D6] to-[#F8E1C8] text-[#1e3d2f] font-medium'
+                          : 'text-[#3e554a] hover:bg-white/50'
+                      }`}
+                    >
+                      {category || "Uncategorized"}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Price Filter */}
               <div className="mb-6">
