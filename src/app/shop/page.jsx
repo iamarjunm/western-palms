@@ -5,8 +5,9 @@ import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from "framer-motion";
 import ProductGrid from "@/components/ProductGrid";
 import { fetchProducts, fetchProductsByCategory } from "@/lib/fetchProducts";
+import { Suspense } from 'react';
 
-export default function ShopPage() {
+function ShopPageContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
@@ -48,7 +49,6 @@ export default function ShopPage() {
             setCurrentCollection(result.collection);
             setAllProducts(result.products);
             setProducts(result.products);
-            // Set the selected category
             setSelectedCategory(result.collection.title);
           }
         } else {
@@ -430,5 +430,13 @@ export default function ShopPage() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ShopPageContent />
+    </Suspense>
   );
 }
