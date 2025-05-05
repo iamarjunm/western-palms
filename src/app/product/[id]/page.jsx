@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 import { fetchProductById, fetchProducts } from "@/lib/fetchProducts";
 import formatCurrency from "@/lib/formatCurrency";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 // Color mapping for visual swatches
 const colorMap = {
@@ -38,6 +39,7 @@ export default function ProductPage() {
   const [showToast, setShowToast] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [zoomActive, setZoomActive] = useState(false);
+  const router = useRouter();
 
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
@@ -124,9 +126,38 @@ export default function ProductPage() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleBuyNow = () => {
-    if (!selectedVariant) return;
-    window.location.href = `${process.env.NEXT_PUBLIC_STORE_URL}/cart/${selectedVariant.id}:${quantity}`;
+  const handleBuyNow = async () => {
+    if (!selectedVariant) {
+      alert("Please select the correct options before proceeding.");
+      return;
+    }
+  
+    try {
+      // Extract just the numeric ID from the variant ID for Shopify native checkout
+      const variantId = selectedVariant.id.split('/').pop();
+  
+      // Add the item to cart with quantity
+      addToCart({
+        id: product.id,
+        variantId: selectedVariant.id,
+        title: product.title,
+        price: selectedVariant.price,
+        image: product.images[0]?.url || product.featuredImage?.url || '',
+        variantTitle: selectedVariant.title,
+        quantity: quantity
+      });
+  
+      // Redirect to custom checkout page
+      router.push('/checkout');
+  
+      // Or redirect to Shopify’s native checkout:
+      // const checkoutUrl = `${process.env.NEXT_PUBLIC_SHOPIFY_STORE_URL}/cart/${variantId}:${quantity}`;
+      // window.location.href = checkoutUrl;
+  
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      alert("Failed to proceed to checkout. Please try again.");
+    }
   };
 
   const toggleWishlist = () => {
