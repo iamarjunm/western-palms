@@ -174,17 +174,23 @@ export default function ContactPage() {
               
               <div className="space-y-6">
                 {[
-                  {
-                    icon: <FiMail className="text-2xl text-[#FF6B6B]" />,
-                    title: "Email Us",
-                    content: "westernpalms29@gmail.com",
-                    action: "mailto:westernpalms29@gmail.com"
-                  },
-                  {
-                    icon: <FiPhone className="text-2xl text-[#3A86FF]" />,
-                    title: "Whatsapp Us",
-                    content: "+91 9599296553",
-                  },
+                 [
+  {
+    icon: <FiMail className="text-2xl text-[#FF6B6B]" />,
+    title: "Email Us",
+    content: "westernpalms29@gmail.com",
+    action: "mailto:westernpalms29@gmail.com"
+  },
+  {
+    icon: <FiPhone className="text-2xl text-[#3A86FF]" />,
+    title: "Whatsapp Us",
+    content: "+91 9599296553",
+  },
+  {
+    icon: <FiMapPin className="text-2xl text-[#8338EC]" />,
+    title: "Visit Us",
+    content: "T-510/C, 10/2 Bajeet Nagar, Delhi - 110008",
+  },
                 ].map((item, index) => (
                   <motion.div 
                     key={index}
