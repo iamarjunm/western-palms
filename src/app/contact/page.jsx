@@ -1,18 +1,13 @@
 "use client";
 
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { FiMail, FiPhone, FiMapPin, FiSend } from "react-icons/fi";
+import { FiMail, FiPhone, FiMapPin } from "react-icons/fi";
 import { useInView } from "react-intersection-observer";
-import Image from "next/image";
 import { useEffect } from "react";
 
 export default function ContactPage() {
-  const [ref, inView] = useInView({
-    threshold: 0.5,
-    triggerOnce: false
-  });
+  const [ref, inView] = useInView({ threshold: 0.5, triggerOnce: false });
 
-  // Animated counter for customer satisfaction
   const satisfactionCount = useMotionValue(0);
   const roundedSatisfaction = useTransform(satisfactionCount, Math.round);
 
@@ -22,17 +17,13 @@ export default function ContactPage() {
     }
   }, [inView]);
 
-  // Text animation variants
   const textVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.3
-      }
-    }
+      transition: { staggerChildren: 0.1, delayChildren: 0.3 },
+    },
   };
 
   const letterVariants = {
@@ -40,29 +31,23 @@ export default function ContactPage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { 
-        duration: 0.5, 
-        ease: [0.2, 0.65, 0.3, 0.9] 
-      }
-    }
+      transition: { duration: 0.5, ease: [0.2, 0.65, 0.3, 0.9] },
+    },
   };
 
-  // Split text into letters for animation
   const title1 = "Desert";
   const title2 = "Connect With Us";
 
   return (
-    <div 
+    <div
       ref={ref}
       className="relative overflow-hidden bg-gradient-to-br from-[#FFF5E6] via-[#FFE8D6] to-[#F8E1C8]"
     >
-      {/* Floating desert elements */}
+      {/* Background floating blobs */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(15)].map((_, i) => {
           const colors = ["#FF6B6B", "#4ECDC4", "#FFBE0B", "#8338EC", "#3A86FF"];
-          const randomColor = colors[Math.floor(Math.random() * colors.length)];
           const size = Math.random() * 200 + 50;
-          
           return (
             <motion.div
               key={i}
@@ -72,19 +57,19 @@ export default function ContactPage() {
                 height: size,
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
-                backgroundColor: randomColor
+                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
               }}
               animate={{
                 y: [0, Math.random() * 200 - 100],
                 x: [0, Math.random() * 200 - 100],
                 rotate: [0, Math.random() * 360],
-                scale: [1, 1.2, 1]
+                scale: [1, 1.2, 1],
               }}
               transition={{
                 duration: 20 + Math.random() * 40,
                 repeat: Infinity,
                 repeatType: "reverse",
-                ease: "easeInOut"
+                ease: "easeInOut",
               }}
             />
           );
@@ -93,7 +78,7 @@ export default function ContactPage() {
 
       {/* Main content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        {/* Animated title */}
+        {/* Animated heading */}
         <motion.div
           initial="hidden"
           animate={inView ? "visible" : "hidden"}
@@ -101,7 +86,7 @@ export default function ContactPage() {
           className="text-center mb-16"
         >
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-4">
-            <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#8338EC] overflow-hidden">
+            <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#8338EC]">
               {title1.split("").map((letter, index) => (
                 <motion.span
                   key={index}
@@ -112,7 +97,7 @@ export default function ContactPage() {
                 </motion.span>
               ))}
             </motion.span>
-            <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#3A86FF] to-[#4ECDC4] overflow-hidden">
+            <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#3A86FF] to-[#4ECDC4]">
               {title2.split("").map((letter, index) => (
                 <motion.span
                   key={index}
@@ -135,14 +120,13 @@ export default function ContactPage() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-12">
-          {/* Contact Info */}
           <div className="space-y-8 mx-auto max-w-2xl">
-            {/* Satisfaction Guarantee */}
+            {/* Satisfaction Block */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30 p-8"
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-8"
             >
               <div className="flex items-start gap-4">
                 <div className="bg-[#FFE8D6] p-3 rounded-full">
@@ -163,71 +147,70 @@ export default function ContactPage() {
               </div>
             </motion.div>
 
-            {/* Contact Methods */}
+            {/* Contact Info */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
-              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-white/30 p-8"
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-8"
             >
               <h3 className="text-xl font-bold text-[#1e3d2f] mb-6">Ways to Connect</h3>
-              
+
               <div className="space-y-6">
-                {[
-                 [
-  {
-    icon: <FiMail className="text-2xl text-[#FF6B6B]" />,
-    title: "Email Us",
-    content: "westernpalms29@gmail.com",
-    action: "mailto:westernpalms29@gmail.com"
-  },
-  {
-    icon: <FiPhone className="text-2xl text-[#3A86FF]" />,
-    title: "Whatsapp Us",
-    content: "+91 9599296553",
-  },
-  {
-    icon: <FiMapPin className="text-2xl text-[#8338EC]" />,
-    title: "Visit Us",
-    content: "T-510/C, 10/2 Bajeet Nagar, Delhi - 110008",
-  },
-                ].map((item, index) => (
-                  <motion.div 
-                    key={index}
-                    whileHover={{ x: 5 }}
-                    className="flex items-start gap-4"
-                  >
-                    <div className="bg-[#FFE8D6] p-3 rounded-full flex-shrink-0">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-[#1e3d2f]">{item.title}</h4>
-                      <a 
-                        href={item.action} 
-                        className="text-[#3e554a] hover:text-[#FF6B6B] transition-colors block"
-                      >
-                        {item.content}
-                      </a>
-                    </div>
-                  </motion.div>
-                ))}
+                {/* Email */}
+                <div className="flex items-start gap-4">
+                  <div className="bg-[#FFE8D6] p-3 rounded-full flex-shrink-0">
+                    <FiMail className="text-2xl text-[#FF6B6B]" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#1e3d2f]">Email Us</h4>
+                    <a
+                      href="mailto:westernpalms29@gmail.com"
+                      className="text-[#3e554a] hover:text-[#FF6B6B] block transition-colors"
+                    >
+                      westernpalms29@gmail.com
+                    </a>
+                  </div>
+                </div>
+
+                {/* Phone */}
+                <div className="flex items-start gap-4">
+                  <div className="bg-[#FFE8D6] p-3 rounded-full flex-shrink-0">
+                    <FiPhone className="text-2xl text-[#3A86FF]" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#1e3d2f]">Whatsapp Us</h4>
+                    <p className="text-[#3e554a]">+91 9599296553</p>
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div className="flex items-start gap-4">
+                  <div className="bg-[#FFE8D6] p-3 rounded-full flex-shrink-0">
+                    <FiMapPin className="text-2xl text-[#8338EC]" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-[#1e3d2f]">Visit Us</h4>
+                    <p className="text-[#3e554a]">T-510/C, 10/2 Bajeet Nagar, Delhi - 110008</p>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
         </div>
       </div>
 
-      {/* Decorative cactus border */}
+      {/* Bottom cactus border */}
       <div className="h-16 bg-[#3e554a] flex items-center justify-center overflow-hidden">
-        <motion.div 
+        <motion.div
           className="flex gap-8 text-3xl text-[#FFE8D6]"
           animate={{
             x: [0, -100],
             transition: {
               duration: 30,
               repeat: Infinity,
-              ease: "linear"
-            }
+              ease: "linear",
+            },
           }}
         >
           {[...Array(10)].map((_, i) => (
