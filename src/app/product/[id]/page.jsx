@@ -138,6 +138,7 @@ export default function ProductPage() {
   }, [id, isInWishlist]);
 
   // Effect to update selectedVariant and main image when selectedOptions change
+  // Also reset quantity to 1 when variant changes to prevent issues if new variant has less stock
   useEffect(() => {
     if (!product || !product.variants) return;
 
@@ -158,9 +159,10 @@ export default function ProductPage() {
       });
     });
 
-    console.log("Found newVariant:", newVariant ? { id: newVariant.id, title: newVariant.title, image: newVariant.image?.url } : null);
+    console.log("Found newVariant:", newVariant ? { id: newVariant.id, title: newVariant.title, image: newVariant.image?.url, quantity: newVariant.quantity } : null); // Added quantity to debug log
 
     setSelectedVariant(newVariant || null); // Ensure it's null if no exact match
+    setQuantity(1); // Reset quantity to 1 when variant changes
 
     // Logic to update the main displayed image based on the selected variant
     if (newVariant && newVariant.image) {
@@ -227,6 +229,14 @@ export default function ProductPage() {
       return;
     }
 
+    // NEW STOCK CHECK HERE
+    if (quantity > selectedVariant.quantity) {
+      alert(`You can only add ${selectedVariant.quantity} of this item to your cart due to limited stock.`);
+      setQuantity(selectedVariant.quantity > 0 ? selectedVariant.quantity : 1); // Set to max available or 1 if 0
+      return;
+    }
+    // END NEW STOCK CHECK
+
     addToCart({
       id: product.id,
       variantId: selectedVariant.id,
@@ -236,7 +246,7 @@ export default function ProductPage() {
       image: selectedVariant.image?.url || product.images[selectedImage]?.url || product.featuredImage?.url || '',
       variantTitle: selectedVariant.title,
       quantity: quantity,
-      stock: selectedVariant.inventoryQuantity
+      stock: selectedVariant.quantity // Use selectedVariant.quantity which maps to inventoryQuantity
     });
 
     setShowToast(true);
@@ -250,6 +260,14 @@ export default function ProductPage() {
       return;
     }
 
+    // NEW STOCK CHECK HERE
+    if (quantity > selectedVariant.quantity) {
+      alert(`You can only buy ${selectedVariant.quantity} of this item due to limited stock.`);
+      setQuantity(selectedVariant.quantity > 0 ? selectedVariant.quantity : 1); // Set to max available or 1 if 0
+      return;
+    }
+    // END NEW STOCK CHECK
+
     try {
       addToCart({
         id: product.id,
@@ -260,7 +278,7 @@ export default function ProductPage() {
         image: selectedVariant.image?.url || product.images[selectedImage]?.url || product.featuredImage?.url || '',
         variantTitle: selectedVariant.title,
         quantity: quantity,
-        stock: selectedVariant.inventoryQuantity
+        stock: selectedVariant.quantity // Use selectedVariant.quantity which maps to inventoryQuantity
       });
       router.push('/checkout');
     } catch (error) {
@@ -506,13 +524,13 @@ export default function ProductPage() {
                             );
 
                             if (variantForSize) {
-                              if (variantForSize.available && variantForSize.inventoryQuantity > 0 && variantForSize.inventoryQuantity <= 5) {
+                              if (variantForSize.available && variantForSize.quantity > 0 && variantForSize.quantity <= 5) {
                                 stockIndicator = (
                                   <span className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                    {variantForSize.inventoryQuantity}
+                                    {variantForSize.quantity}
                                   </span>
                                 );
-                              } else if (!variantForSize.available || variantForSize.inventoryQuantity === 0) {
+                              } else if (!variantForSize.available || variantForSize.quantity === 0) {
                                 stockIndicator = (
                                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                     X
@@ -569,13 +587,13 @@ export default function ProductPage() {
                       </div>
                       {optionName === 'size' && (
                         <div className="mt-2 text-xs text-gray-500 flex items-center gap-4">
-                          {product.variants.some(v => v.options.size && v.available && v.inventoryQuantity > 0 && v.inventoryQuantity <= 5 && availableValues.includes(v.options.size)) && (
+                          {product.variants.some(v => v.options.size && v.available && v.quantity > 0 && v.quantity <= 5 && availableValues.includes(v.options.size)) && (
                             <span className="flex items-center gap-1">
                               <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
                               Low stock
                             </span>
                           )}
-                          {product.variants.some(v => v.options.size && (!v.available || v.inventoryQuantity === 0) && availableValues.includes(v.options.size)) && (
+                          {product.variants.some(v => v.options.size && (!v.available || v.quantity === 0) && availableValues.includes(v.options.size)) && (
                             <span className="flex items-center gap-1">
                               <span className="w-3 h-3 bg-red-500 rounded-full"></span>
                               Out of stock
@@ -593,43 +611,58 @@ export default function ProductPage() {
               <h3 className="text-lg font-semibold mb-3 text-gray-900">Quantity</h3>
               <div className="flex items-center gap-4 w-fit border border-gray-300 rounded-lg p-1 bg-white">
                 <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
                   className="p-2 text-gray-600 hover:text-black transition-colors rounded-full hover:bg-gray-100"
                 >
                   <FiMinus />
                 </button>
                 <span className="w-8 text-center font-medium">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(quantity + 1)}
+                  onClick={() => {
+                    if (selectedVariant && quantity < selectedVariant.quantity) {
+                      setQuantity(prev => prev + 1);
+                    } else if (selectedVariant && selectedVariant.quantity === 0) {
+                      alert("This variant is out of stock.");
+                    } else if (selectedVariant && quantity >= selectedVariant.quantity) {
+                      alert(`Maximum quantity available for this variant is ${selectedVariant.quantity}.`);
+                    } else {
+                      alert("Please select a variant first.");
+                    }
+                  }}
                   className="p-2 text-gray-600 hover:text-black transition-colors rounded-full hover:bg-gray-100"
                 >
                   <FiPlus />
                 </button>
               </div>
+              {selectedVariant && selectedVariant.quantity !== undefined && (
+                <p className="text-sm text-gray-500 mt-2">
+                  Available stock: {selectedVariant.quantity}
+                </p>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <motion.button
                 onClick={handleAddToCart}
-                disabled={!selectedVariant?.available}
-                whileHover={selectedVariant?.available ? { scale: 1.02 } : {}}
-                whileTap={selectedVariant?.available ? { scale: 0.98 } : {}}
+                disabled={!selectedVariant?.available || (selectedVariant?.quantity === 0 && selectedVariant?.available)} // Disable if not available or quantity is 0
+                whileHover={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 1.02 } : {}}
+                whileTap={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 0.98 } : {}}
                 className={`flex-1 py-4 px-6 rounded-lg font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                  selectedVariant?.available
+                  selectedVariant?.available && selectedVariant?.quantity > 0
                     ? "bg-black text-white hover:bg-gray-900 shadow-lg"
                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
               >
                 <FiShoppingBag />
-                {selectedVariant?.available ? "Add to Cart" : "Sold Out"}
+                {selectedVariant?.available && selectedVariant?.quantity > 0 ? "Add to Cart" : "Sold Out"}
               </motion.button>
               <motion.button
                 onClick={handleBuyNow}
-                disabled={!selectedVariant?.available}
-                whileHover={selectedVariant?.available ? { scale: 1.02 } : {}}
-                whileTap={selectedVariant?.available ? { scale: 0.98 } : {}}
+                disabled={!selectedVariant?.available || (selectedVariant?.quantity === 0 && selectedVariant?.available)} // Disable if not available or quantity is 0
+                whileHover={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 1.02 } : {}}
+                whileTap={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 0.98 } : {}}
                 className={`flex-1 py-4 px-6 rounded-lg font-bold text-lg transition-all ${
-                  selectedVariant?.available
+                  selectedVariant?.available && selectedVariant?.quantity > 0
                     ? "bg-white text-black border-2 border-black hover:bg-gray-50 shadow-lg"
                     : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                 }`}
