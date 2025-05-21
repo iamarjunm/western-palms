@@ -85,17 +85,6 @@ export default function ContactPage() {
           className="text-center mb-16"
         >
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-4">
-            <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#8338EC]">
-              {title1.split("").map((letter, index) => (
-                <motion.span
-                  key={index}
-                  className="inline-block"
-                  variants={letterVariants}
-                >
-                  {letter === " " ? "\u00A0" : letter}
-                </motion.span>
-              ))}
-            </motion.span>
             <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#3A86FF] to-[#4ECDC4]">
               {title2.split("").map((letter, index) => (
                 <motion.span
