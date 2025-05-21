@@ -179,33 +179,6 @@ export default function Hero() {
               </motion.span>
             </Link>
           </motion.div>
-
-          {/* Animated stats */}
-          <motion.div 
-            className="mt-16 grid grid-cols-3 gap-4 text-[#5A5A5A]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
-          >
-            <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-white/30">
-              <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B]">
-                <motion.span>{roundedDesigns}</motion.span>+
-              </p>
-              <p className="text-sm mt-1 font-medium">Designs</p>
-            </div>
-            <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-white/30">
-              <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#3A86FF] to-[#4ECDC4]">
-                <motion.span>{roundedDesigners}</motion.span>
-              </p>
-              <p className="text-sm mt-1 font-medium">Designers</p>
-            </div>
-            <div className="bg-white/50 backdrop-blur-sm p-4 rounded-xl border border-white/30">
-              <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#8338EC] to-[#FF006E]">
-                <motion.span>{roundedMaterials}</motion.span>
-              </p>
-              <p className="text-sm mt-1 font-medium">Materials</p>
-            </div>
-          </motion.div>
         </motion.div>
 
         {/* Right Image */}
@@ -245,18 +218,6 @@ export default function Hero() {
                 className="object-cover w-full h-full"
                 priority
               />
-            </motion.div>
-            
-            {/* Floating label */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="absolute -bottom-4 -right-4 bg-white px-6 py-2 rounded-full shadow-lg border-2 border-[#FFBE0B]"
-            >
-              <p className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B]">
-                Summer Collection '24
-              </p>
             </motion.div>
           </div>
         </motion.div>

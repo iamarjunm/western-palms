@@ -36,12 +36,8 @@ export default function Navbar() {
         { label: "Tops", href: "/shop?category=tops" },
         { label: "T-Shirts", href: "/shop?category=t-shirts" },
         { label: "Shirts", href: "/shop?category=shirts" },
-        { label: "Tank Tops", href: "/shop?category=tank-tops" },
         { label: "Co-ords", href: "/shop?category=co-ords" },
-        { label: "Jeans", href: "/shop?category=jeans" },
-        { label: "Pants", href: "/shop?category=pants" },
-        { label: "Shorts", href: "/shop?category=shorts" },
-        { label: "Skirts", href: "/shop?category=skirts" }
+        { label: "Bottoms", href: "/shop?category=bottoms" }
       ]
     }
   ];

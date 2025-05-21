@@ -50,9 +50,24 @@ function ProductCard({ product }) {
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
   
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+
+  // Check if mobile on mount
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, []);
 
   // Process variants to separate colors and sizes
   const { colorVariants, sizeVariants, allVariants, defaultVariant } = useMemo(() => {
@@ -107,68 +122,34 @@ function ProductCard({ product }) {
     }) || defaultVariant;
   }, [selectedColor, selectedSize, allVariants, defaultVariant]);
 
-  // Handle images with priority to variant-specific images
-// In your ProductCard component, update the image handling logic:
+  // Process images with proper fallbacks
+  const images = useMemo(() => {
+    console.log('Processing images for product:', product.title);
+    
+    // First check if we have direct images array
+    if (product.images && product.images.length > 0) {
+      console.log('Using product.images:', product.images);
+      return product.images.map(img => ({
+        url: typeof img === 'string' ? img : img.url || img.src,
+        isVariantImage: false
+      }));
+    }
 
-// Process images with proper fallbacks
-const images = useMemo(() => {
-  console.log('Processing images for product:', product.title);
-  
-  // First check if we have direct images array
-  if (product.images && product.images.length > 0) {
-    console.log('Using product.images:', product.images);
-    return product.images.map(img => ({
-      url: typeof img === 'string' ? img : img.url || img.src,
-      isVariantImage: false
-    }));
-  }
+    // Then check for featuredImage
+    if (product.featuredImage) {
+      console.log('Using featuredImage:', product.featuredImage);
+      return [{
+        url: typeof product.featuredImage === 'string' 
+          ? product.featuredImage 
+          : product.featuredImage.url,
+        isVariantImage: false
+      }];
+    }
 
-  // Then check for featuredImage
-  if (product.featuredImage) {
-    console.log('Using featuredImage:', product.featuredImage);
-    return [{
-      url: typeof product.featuredImage === 'string' 
-        ? product.featuredImage 
-        : product.featuredImage.url,
-      isVariantImage: false
-    }];
-  }
-
-  // Fallback to placeholder
-  console.log('Using placeholder image');
-  return [{ url: '/placeholder-product.jpg', isVariantImage: false }];
-}, [product]);
-
-// Update the Image component rendering:
-<Image
-  src={images[currentImageIndex]?.url || '/placeholder-product.jpg'}
-  alt={product.title || "Product image"}
-  fill
-  className="object-cover object-center group-hover:scale-105 transition-transform duration-500"
-  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-  priority={currentImageIndex === 0}
-/>
-
-// For the thumbnail navigation:
-{images.length > 1 && (
-  <div className="absolute bottom-4 right-4 flex gap-1">
-    {images.map((_, index) => (
-      <button
-        key={index}
-        onClick={(e) => {
-          e.preventDefault();
-          setCurrentImageIndex(index);
-        }}
-        className={`w-2 h-2 rounded-full transition-all ${
-          index === currentImageIndex 
-            ? 'bg-[#1e3d2f] w-4' 
-            : 'bg-white/80'
-        }`}
-        aria-label={`View image ${index + 1}`}
-      />
-    ))}
-  </div>
-)}
+    // Fallback to placeholder
+    console.log('Using placeholder image');
+    return [{ url: '/placeholder-product.jpg', isVariantImage: false }];
+  }, [product]);
 
   // Price calculations
   const price = selectedVariant?.price?.amount || 
@@ -213,7 +194,6 @@ const images = useMemo(() => {
           title: product.title || 'Untitled Product',
           price: product.price || '0',
           compareAtPrice: product.compareAtPrice || '0',
-          // Handle both Shopify and simple image formats
           images: product.images 
             ? Array.isArray(product.images) 
               ? product.images.map(img => ({
@@ -240,7 +220,7 @@ const images = useMemo(() => {
   // Auto-rotate images on hover
   useEffect(() => {
     let interval;
-    if (isHovered && images.length > 1) {
+    if (isHovered && images.length > 1 && !isMobile) {
       interval = setInterval(() => {
         setCurrentImageIndex(prev => 
           prev === images.length - 1 ? 0 : prev + 1
@@ -248,7 +228,7 @@ const images = useMemo(() => {
       }, 3000);
     }
     return () => clearInterval(interval);
-  }, [isHovered, images.length]);
+  }, [isHovered, images.length, isMobile]);
 
   // Loading state
   if (!product || Object.keys(product).length === 0) {
@@ -265,8 +245,8 @@ const images = useMemo(() => {
   return (
     <div 
       className="relative group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => !isMobile && setIsHovered(true)}
+      onMouseLeave={() => !isMobile && setIsHovered(false)}
     >
       {/* Badges */}
       <div className="absolute top-3 left-3 z-10 flex gap-2">
@@ -326,22 +306,24 @@ const images = useMemo(() => {
             </motion.div>
           </AnimatePresence>
 
-          {/* Quick View Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ 
-              opacity: isHovered ? 1 : 0,
-              y: isHovered ? 0 : 10
-            }}
-            transition={{ duration: 0.3 }}
-            onClick={(e) => {
-              e.preventDefault();
-              setQuickViewOpen(true);
-            }}
-            className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-md text-[#1e3d2f] px-4 py-2 rounded-full font-medium shadow-md hover:bg-white transition-all flex items-center gap-2"
-          >
-            <FiEye /> Quick View
-          </motion.button>
+          {/* Quick View Button - Hidden on mobile */}
+          {!isMobile && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ 
+                opacity: isHovered ? 1 : 0,
+                y: isHovered ? 0 : 10
+              }}
+              transition={{ duration: 0.3 }}
+              onClick={(e) => {
+                e.preventDefault();
+                setQuickViewOpen(true);
+              }}
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-md text-[#1e3d2f] px-4 py-2 rounded-full font-medium shadow-md hover:bg-white transition-all flex items-center gap-2"
+            >
+              <FiEye /> Quick View
+            </motion.button>
+          )}
 
           {/* Image Navigation Dots */}
           {images.length > 1 && (
@@ -396,7 +378,7 @@ const images = useMemo(() => {
           </div>
         </div>
 
-        {/* Color Variants (shown on product card) */}
+        {/* Color Variants */}
         {colorVariants.length > 0 && (
           <div className="mt-2">
             <div className="flex flex-wrap gap-1">
@@ -424,12 +406,12 @@ const images = useMemo(() => {
           </div>
         )}
 
-        {/* Hover Actions */}
+        {/* Hover Actions - Always visible on mobile */}
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ 
-            opacity: isHovered ? 1 : 0,
-            height: isHovered ? 'auto' : 0
+            opacity: isMobile ? 1 : isHovered ? 1 : 0,
+            height: isMobile ? 'auto' : isHovered ? 'auto' : 0
           }}
           transition={{ duration: 0.3 }}
           className="overflow-hidden"
@@ -448,218 +430,220 @@ const images = useMemo(() => {
         </motion.div>
       </div>
 
-      {/* Quick View Modal */}
-      <AnimatePresence>
-        {quickViewOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ type: 'spring', damping: 25 }}
-              className="relative bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <button
-                onClick={() => setQuickViewOpen(false)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/80 backdrop-blur-md shadow-md hover:bg-[#FF6B6B] hover:text-white transition-colors z-10"
-                aria-label="Close quick view"
+      {/* Quick View Modal - Only show on desktop */}
+      {!isMobile && (
+        <AnimatePresence>
+          {quickViewOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ type: 'spring', damping: 25 }}
+                className="relative bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
               >
-                <FiX />
-              </button>
+                <button
+                  onClick={() => setQuickViewOpen(false)}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/80 backdrop-blur-md shadow-md hover:bg-[#FF6B6B] hover:text-white transition-colors z-10"
+                  aria-label="Close quick view"
+                >
+                  <FiX />
+                </button>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Product Images */}
-                <div className="sticky top-0">
-                  <div className="relative aspect-[3/4]">
-                    <Image
-                      src={images[currentImageIndex]?.url || 
-                           images[currentImageIndex]?.src || 
-                           '/placeholder-product.jpg'}
-                      alt={product.title || "Product image"}
-                      fill
-                      className="object-cover object-center rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      priority
-                    />
-                  </div>
-                  {images.length > 1 && (
-                    <div className="p-4 grid grid-cols-4 gap-2">
-                      {images.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`aspect-[3/4] relative rounded-md overflow-hidden border-2 transition-all ${
-                            index === currentImageIndex 
-                              ? 'border-[#1e3d2f]' 
-                              : 'border-transparent'
-                          }`}
-                        >
-                          <Image
-                            src={image.url || image.src || '/placeholder-product.jpg'}
-                            alt={product.title ? `${product.title} - ${index + 1}` : `Product view ${index + 1}`}
-                            fill
-                            className="object-cover object-center"
-                          />
-                        </button>
-                      ))}
+                <div className="grid md:grid-cols-2 gap-8">
+                  {/* Product Images */}
+                  <div className="sticky top-0">
+                    <div className="relative aspect-[3/4]">
+                      <Image
+                        src={images[currentImageIndex]?.url || 
+                             images[currentImageIndex]?.src || 
+                             '/placeholder-product.jpg'}
+                        alt={product.title || "Product image"}
+                        fill
+                        className="object-cover object-center rounded-t-xl md:rounded-l-xl md:rounded-tr-none"
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        priority
+                      />
                     </div>
-                  )}
-                </div>
-
-                {/* Product Details */}
-                <div className="p-8">
-                  <div className="flex items-center gap-2 mb-2">
-                    {product.tags?.includes('new') && (
-                      <span className="bg-[#FF6B6B] text-white text-xs font-bold px-2 py-1 rounded-full">
-                        NEW
-                      </span>
-                    )}
-                    {product.tags?.includes('bestseller') && (
-                      <span className="bg-[#FFBE0B] text-[#5C4200] text-xs font-bold px-2 py-1 rounded-full">
-                        BESTSELLER
-                      </span>
+                    {images.length > 1 && (
+                      <div className="p-4 grid grid-cols-4 gap-2">
+                        {images.map((image, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`aspect-[3/4] relative rounded-md overflow-hidden border-2 transition-all ${
+                              index === currentImageIndex 
+                                ? 'border-[#1e3d2f]' 
+                                : 'border-transparent'
+                            }`}
+                          >
+                            <Image
+                              src={image.url || image.src || '/placeholder-product.jpg'}
+                              alt={product.title ? `${product.title} - ${index + 1}` : `Product view ${index + 1}`}
+                              fill
+                              className="object-cover object-center"
+                            />
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
 
-                  <h2 className="text-2xl font-bold text-[#1e3d2f] mb-2">
-                    {product.title}
-                  </h2>
+                  {/* Product Details */}
+                  <div className="p-8">
+                    <div className="flex items-center gap-2 mb-2">
+                      {product.tags?.includes('new') && (
+                        <span className="bg-[#FF6B6B] text-white text-xs font-bold px-2 py-1 rounded-full">
+                          NEW
+                        </span>
+                      )}
+                      {product.tags?.includes('bestseller') && (
+                        <span className="bg-[#FFBE0B] text-[#5C4200] text-xs font-bold px-2 py-1 rounded-full">
+                          BESTSELLER
+                        </span>
+                      )}
+                    </div>
 
-                  <div className="flex items-center gap-2 mb-4">
-                    {compareAtPrice > 0 ? (
-                      <>
-                        <span className="text-xl text-[#FF6B6B] font-bold">
+                    <h2 className="text-2xl font-bold text-[#1e3d2f] mb-2">
+                      {product.title}
+                    </h2>
+
+                    <div className="flex items-center gap-2 mb-4">
+                      {compareAtPrice > 0 ? (
+                        <>
+                          <span className="text-xl text-[#FF6B6B] font-bold">
+                            {formatCurrency(price)}
+                          </span>
+                          <span className="text-[#3e554a] line-through">
+                            {formatCurrency(compareAtPrice)}
+                          </span>
+                          <span className="text-xs bg-[#FF6B6B]/10 text-[#FF6B6B] px-2 py-1 rounded-full">
+                            Save {discountPercentage}%
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-xl font-bold text-[#1e3d2f]">
                           {formatCurrency(price)}
                         </span>
-                        <span className="text-[#3e554a] line-through">
-                          {formatCurrency(compareAtPrice)}
-                        </span>
-                        <span className="text-xs bg-[#FF6B6B]/10 text-[#FF6B6B] px-2 py-1 rounded-full">
-                          Save {discountPercentage}%
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-xl font-bold text-[#1e3d2f]">
-                        {formatCurrency(price)}
-                      </span>
+                      )}
+                    </div>
+
+                    <div 
+                      className="prose prose-sm text-[#3e554a] mb-6" 
+                      dangerouslySetInnerHTML={{ __html: product.descriptionHtml || '' }}
+                    />
+
+                    {/* Color Variant Selection */}
+                    {colorVariants.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-[#1e3d2f] mb-2">Color</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {colorVariants.map((color) => (
+                            <button
+                              key={color.value}
+                              onClick={() => setSelectedColor(color.value)}
+                              className={`w-8 h-8 rounded-full border-2 transition-all relative ${
+                                selectedColor === color.value 
+                                  ? 'border-[#1e3d2f] ring-1 ring-offset-1 ring-[#1e3d2f]' 
+                                  : 'border-transparent hover:border-gray-300'
+                              }`}
+                              style={{ backgroundColor: color.value }}
+                              aria-label={`Select color ${color.value}`}
+                              title={color.value}
+                            >
+                              {selectedColor === color.value && (
+                                <span className="absolute inset-0 flex items-center justify-center text-white text-xs">
+                                  ✓
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  </div>
 
-                  <div 
-                    className="prose prose-sm text-[#3e554a] mb-6" 
-                    dangerouslySetInnerHTML={{ __html: product.descriptionHtml || '' }}
-                  />
+                    {/* Size Variant Selection */}
+                    {sizeVariants.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="font-medium text-[#1e3d2f] mb-2">Size</h4>
+                        <div className="grid grid-cols-4 gap-2">
+                          {sizeVariants.map((size) => (
+                            <button
+                              key={size.value}
+                              onClick={() => setSelectedSize(size.value)}
+                              className={`py-2 border rounded-md transition-all ${
+                                selectedSize === size.value 
+                                  ? 'border-[#1e3d2f] bg-[#1e3d2f] text-white' 
+                                  : 'border-[#d1d9d5] hover:border-[#1e3d2f]'
+                              }`}
+                            >
+                              {size.value}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                  {/* Color Variant Selection */}
-                  {colorVariants.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="font-medium text-[#1e3d2f] mb-2">Color</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {colorVariants.map((color) => (
-                          <button
-                            key={color.value}
-                            onClick={() => setSelectedColor(color.value)}
-                            className={`w-8 h-8 rounded-full border-2 transition-all relative ${
-                              selectedColor === color.value 
-                                ? 'border-[#1e3d2f] ring-1 ring-offset-1 ring-[#1e3d2f]' 
-                                : 'border-transparent hover:border-gray-300'
-                            }`}
-                            style={{ backgroundColor: color.value }}
-                            aria-label={`Select color ${color.value}`}
-                            title={color.value}
-                          >
-                            {selectedColor === color.value && (
-                              <span className="absolute inset-0 flex items-center justify-center text-white text-xs">
-                                ✓
-                              </span>
-                            )}
-                          </button>
-                        ))}
+                    {/* Quantity Selector */}
+                    <div className="mb-6">
+                      <h4 className="font-medium text-[#1e3d2f] mb-2">Quantity</h4>
+                      <div className="flex items-center gap-4 w-fit">
+                        <button
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          className="p-2 rounded-full border border-[#d1d9d5] hover:bg-[#1e3d2f]/10 transition-colors"
+                        >
+                          <FiMinus />
+                        </button>
+                        <span className="text-xl w-8 text-center">{quantity}</span>
+                        <button
+                          onClick={() => setQuantity(quantity + 1)}
+                          className="p-2 rounded-full border border-[#d1d9d5] hover:bg-[#1e3d2f]/10 transition-colors"
+                        >
+                          <FiPlus />
+                        </button>
                       </div>
                     </div>
-                  )}
 
-                  {/* Size Variant Selection (only shown in quick view) */}
-                  {sizeVariants.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="font-medium text-[#1e3d2f] mb-2">Size</h4>
-                      <div className="grid grid-cols-4 gap-2">
-                        {sizeVariants.map((size) => (
-                          <button
-                            key={size.value}
-                            onClick={() => setSelectedSize(size.value)}
-                            className={`py-2 border rounded-md transition-all ${
-                              selectedSize === size.value 
-                                ? 'border-[#1e3d2f] bg-[#1e3d2f] text-white' 
-                                : 'border-[#d1d9d5] hover:border-[#1e3d2f]'
-                            }`}
-                          >
-                            {size.value}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Quantity Selector */}
-                  <div className="mb-6">
-                    <h4 className="font-medium text-[#1e3d2f] mb-2">Quantity</h4>
-                    <div className="flex items-center gap-4 w-fit">
+                    <div className="flex gap-4">
                       <button
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="p-2 rounded-full border border-[#d1d9d5] hover:bg-[#1e3d2f]/10 transition-colors"
+                        onClick={() => {
+                          handleAddToCart();
+                          setQuickViewOpen(false);
+                        }}
+                        disabled={!selectedVariant}
+                        className={`flex-1 bg-[#1e3d2f] text-white py-3 px-6 rounded-md font-medium hover:bg-[#3e554a] transition-colors flex items-center justify-center gap-2 ${
+                          !selectedVariant ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
                       >
-                        <FiMinus />
+                        <FiShoppingBag /> Add to Bag
                       </button>
-                      <span className="text-xl w-8 text-center">{quantity}</span>
                       <button
-                        onClick={() => setQuantity(quantity + 1)}
-                        className="p-2 rounded-full border border-[#d1d9d5] hover:bg-[#1e3d2f]/10 transition-colors"
+                        onClick={toggleWishlist}
+                        className={`p-3 rounded-md border transition-colors ${
+                          isWishlisted 
+                            ? 'bg-[#FF6B6B] text-white border-[#FF6B6B]' 
+                            : 'border-[#d1d9d5] hover:border-[#FF6B6B] hover:text-[#FF6B6B]'
+                        }`}
+                        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                       >
-                        <FiPlus />
+                        <FiHeart className={isWishlisted ? 'fill-current' : ''} />
                       </button>
                     </div>
-                  </div>
 
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => {
-                        handleAddToCart();
-                        setQuickViewOpen(false);
-                      }}
-                      disabled={!selectedVariant}
-                      className={`flex-1 bg-[#1e3d2f] text-white py-3 px-6 rounded-md font-medium hover:bg-[#3e554a] transition-colors flex items-center justify-center gap-2 ${
-                        !selectedVariant ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
+                    <Link
+                      href={`/product/${productId}`}
+                      className="mt-4 inline-flex items-center text-[#3A86FF] hover:text-[#1e3d2f] transition-colors"
+                      onClick={() => setQuickViewOpen(false)}
                     >
-                      <FiShoppingBag /> Add to Bag
-                    </button>
-                    <button
-                      onClick={toggleWishlist}
-                      className={`p-3 rounded-md border transition-colors ${
-                        isWishlisted 
-                          ? 'bg-[#FF6B6B] text-white border-[#FF6B6B]' 
-                          : 'border-[#d1d9d5] hover:border-[#FF6B6B] hover:text-[#FF6B6B]'
-                      }`}
-                      aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                    >
-                      <FiHeart className={isWishlisted ? 'fill-current' : ''} />
-                    </button>
+                      View full details <FiChevronRight className="ml-1" />
+                    </Link>
                   </div>
-
-                  <Link
-                    href={`/product/${productId}`}
-                    className="mt-4 inline-flex items-center text-[#3A86FF] hover:text-[#1e3d2f] transition-colors"
-                    onClick={() => setQuickViewOpen(false)}
-                  >
-                    View full details <FiChevronRight className="ml-1" />
-                  </Link>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      )}
     </div>
   );
 }

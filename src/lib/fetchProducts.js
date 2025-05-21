@@ -223,6 +223,16 @@ export async function fetchProductById(id) {
     const product = data.product;
     console.log('Raw product data:', product);
 
+    const sizes = product.variants.edges.map((variantEdge) => {
+      const variant = variantEdge.node;
+      const sizeOption = variant.selectedOptions.find((option) => option.name.toLowerCase() === "size");
+      return {
+        size: sizeOption?.value || variant.title, // Fallback to variant title
+        available: variant.availableForSale,
+        stock: variant.quantityAvailable ?? 0,
+      };
+    });
+
     // Process images with priority to variant-specific images
     const processImages = () => {
       const imageSet = new Set();
@@ -323,6 +333,7 @@ export async function fetchProductById(id) {
       productType: product.productType,
       tags: product.tags,
       price,
+      sizes,
       compareAtPrice: compareAtPrice > price ? compareAtPrice : null,
       currencyCode,
       discountPercentage: compareAtPrice > price 

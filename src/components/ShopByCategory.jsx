@@ -32,52 +32,16 @@ const categories = [
     color: "from-[#3A86FF] to-[#4ECDC4]",
   },
   {
-    name: "Tank Tops",
-    slug: "tank-tops",
-    icon: "🔥",
-    color: "from-[#FF8A5B] to-[#FF6B6B]",
-  },
-  {
     name: "Co-ords",
     slug: "co-ords",
     icon: "✨",
     color: "from-[#8338EC] to-[#3A86FF]",
   },
   {
-    name: "Jeans",
-    slug: "jeans",
+    name: "Bottoms",
+    slug: "bottoms",
     icon: "👖",
     color: "from-[#1e3d2f] to-[#3e554a]",
-  },
-  {
-    name: "Pants",
-    slug: "pants",
-    icon: "🏜️",
-    color: "from-[#D4B8C7] to-[#E2C6D6]",
-  },
-  {
-    name: "Shorts",
-    slug: "shorts",
-    icon: "🩳",
-    color: "from-[#FFD1DC] to-[#FF9E9E]",
-  },
-  {
-    name: "Skirts",
-    slug: "skirts",
-    icon: "💃",
-    color: "from-[#A2D729] to-[#4ECDC4]",
-  },
-  {
-    name: "Jeggings",
-    slug: "jeggings",
-    icon: "👯",
-    color: "from-[#8B3E3E] to-[#FF6B6B]",
-  },
-  {
-    name: "Cargo",
-    slug: "cargo",
-    icon: "🪖",
-    color: "from-[#5C4200] to-[#FFBE0B]",
   }
 ];
 
