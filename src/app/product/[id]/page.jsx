@@ -23,7 +23,34 @@ const colorMap = {
   purple: '#800080',
   orange: '#ffa500',
   gray: '#808080',
+  brown: '#a52a2a',
+  cyan: '#00ffff',
+  magenta: '#ff00ff',
+  lime: '#00ff00',
+  maroon: '#800000',
+  navy: '#000080',
+  olive: '#808000',
+  teal: '#008080',
+  aqua: '#00ffff',
+  silver: '#c0c0c0',
+  gold: '#ffd700',
+  beige: '#f5f5dc',
+  coral: '#ff7f50',
+  indigo: '#4b0082',
+  ivory: '#fffff0',
+  khaki: '#f0e68c',
+  lavender: '#e6e6fa',
+  mint: '#98ff98',
+  peach: '#ffe5b4',
+  salmon: '#fa8072',
+  turquoise: '#40e0d0',
+  violet: '#ee82ee',
+  chocolate: '#d2691e',
+  crimson: '#dc143c',
+  plum: '#dda0dd',
+  wheat: '#f5deb3',
 };
+
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -590,7 +617,7 @@ export default function ProductPage() {
                           {product.variants.some(v => v.options.size && v.available && v.quantity > 0 && v.quantity <= 5 && availableValues.includes(v.options.size)) && (
                             <span className="flex items-center gap-1">
                               <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-                              Low stock
+                              Few Pieces Left
                             </span>
                           )}
                           {product.variants.some(v => v.options.size && (!v.available || v.quantity === 0) && availableValues.includes(v.options.size)) && (
@@ -670,14 +697,6 @@ export default function ProductPage() {
                 Buy Now
               </motion.button>
             </div>
-
-            <button
-              onClick={() => navigator.clipboard.writeText(window.location.href)}
-              className="flex items-center gap-2 text-gray-500 hover:text-black transition-colors w-fit px-3 py-2 rounded-lg hover:bg-gray-100"
-            >
-              <FiShare2 />
-              <span className="text-sm font-medium">Share this product</span>
-            </button>
           </div>
         </div>
 

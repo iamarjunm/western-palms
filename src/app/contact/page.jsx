@@ -35,7 +35,6 @@ export default function ContactPage() {
     },
   };
 
-  const title1 = "Desert";
   const title2 = "Connect With Us";
 
   return (

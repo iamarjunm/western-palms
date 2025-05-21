@@ -115,81 +115,82 @@ export async function fetchProducts() {
 export async function fetchProductById(id) {
   // Handle both full GID and just the ID part
   const productId = id.startsWith('gid://shopify/Product/') ? id : `gid://shopify/Product/${id}`;
-  
+
   const endpoint = `${process.env.SHOPIFY_STORE_URL}/api/2024-01/graphql.json`;
   const query = `
-    query GetProductById($id: ID!) {
-      product(id: $id) {
-        id
-        title
-        handle
-        descriptionHtml
-        productType
-        tags
-        featuredImage {
-          url
+  query GetProductById($id: ID!) {
+    product(id: $id) {
+      id
+      title
+      handle
+      descriptionHtml
+      productType
+      tags
+      featuredImage {
+        url
+        altText
+      }
+      priceRange {
+        minVariantPrice {
+          amount
+          currencyCode
         }
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
+        maxVariantPrice {
+          amount
+          currencyCode
+        }
+      }
+      compareAtPriceRange {
+        minVariantPrice {
+          amount
+          currencyCode
+        }
+      }
+      options {
+        name
+        values
+      }
+      images(first: 10) {
+        edges {
+          node {
+            url
+            altText
           }
-          maxVariantPrice {
-            amount
-            currencyCode
-          }
         }
-        compareAtPriceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-        }
-        options {
-          name
-          values
-        }
-        images(first: 10) {
-          edges {
-            node {
+      }
+      variants(first: 100) {
+        edges {
+          node {
+            id
+            title
+            sku
+            price {
+              amount
+              currencyCode
+            }
+            compareAtPrice {
+              amount
+              currencyCode
+            }
+            selectedOptions {
+              name
+              value
+            }
+            image {
               url
               altText
             }
-          }
-        }
-        variants(first: 100) {
-          edges {
-            node {
-              id
-              title
-              sku
-              price {
-                amount
-                currencyCode
-              }
-              compareAtPrice {
-                amount
-                currencyCode
-              }
-              selectedOptions {
-                name
-                value
-              }
-              image {
-                url
-                altText
-              }
-              quantityAvailable
-              availableForSale
-            }
+            quantityAvailable
+            availableForSale
           }
         }
       }
     }
-  `;
+  }
+`;
 
   try {
-    console.log(`Fetching product with ID: ${productId}`);
+    console.log(`Workspaceing product with ID: ${productId}`);
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -223,6 +224,8 @@ export async function fetchProductById(id) {
     const product = data.product;
     console.log('Raw product data:', product);
 
+    // This part seems to be for some custom sizes array, which might not be strictly needed for product display
+    // but leaving it as is if it serves another purpose.
     const sizes = product.variants.edges.map((variantEdge) => {
       const variant = variantEdge.node;
       const sizeOption = variant.selectedOptions.find((option) => option.name.toLowerCase() === "size");
@@ -233,7 +236,7 @@ export async function fetchProductById(id) {
       };
     });
 
-    // Process images with priority to variant-specific images
+    // Process images (this is generally correct for product.images)
     const processImages = () => {
       const imageSet = new Set();
       const images = [];
@@ -273,54 +276,60 @@ export async function fetchProductById(id) {
         optionsMap.set(option.name.toLowerCase(), {
           name: option.name,
           values: new Set(),
-          variants: []
+          variants: [] // This 'variants' array within optionsMap is not directly used for the final product.variants array
         });
       });
 
+      // Populate optionsMap with values from variants (not strictly necessary for final product.variants)
       variants.forEach(variant => {
         variant.selectedOptions.forEach(option => {
           const optionName = option.name.toLowerCase();
           if (optionsMap.has(optionName)) {
             optionsMap.get(optionName).values.add(option.value);
+            // This part of the code is building an internal structure for optionsMap,
+            // which seems separate from the main `variants` array you return.
+            // It's not directly causing the missing image on `selectedVariant`.
             optionsMap.get(optionName).variants.push({
               id: variant.id,
               value: option.value,
               available: variant.availableForSale,
               quantity: variant.quantityAvailable,
-              price: variant.price.amount,
-              image: variant.image?.url
+              image: variant.image?.url // Ensure this is present if this structure is used elsewhere
             });
           }
         });
       });
 
-      // Convert to more usable structure
+      // Convert to more usable structure for product.options (used in ProductPage.jsx)
       const options = Array.from(optionsMap.values()).map(option => ({
         name: option.name,
         values: Array.from(option.values),
-        variants: option.variants
+        // The 'variants' array here isn't used in ProductPage.jsx's option rendering,
+        // so its accuracy here isn't critical for the current bug.
       }));
 
       return {
+        // THIS IS THE CRITICAL FIX: Add the 'image' property to each variant object
         all: variants.map(v => ({
           id: v.id,
           title: v.title,
           sku: v.sku,
-          price: v.price.amount,
-          compareAtPrice: v.compareAtPrice?.amount,
+          price: parseFloat(v.price.amount), // Ensure price is a number
+          compareAtPrice: v.compareAtPrice ? parseFloat(v.compareAtPrice.amount) : null,
           available: v.availableForSale,
           quantity: v.quantityAvailable,
+          image: v.image ? { url: v.image.url, altText: v.image.altText } : undefined, // <--- ADDED THIS LINE
           options: v.selectedOptions.reduce((acc, opt) => {
             acc[opt.name.toLowerCase()] = opt.value;
             return acc;
           }, {})
         })),
-        options
+        options: options // This is the structured product.options used in ProductPage.jsx
       };
     };
 
     const images = processImages();
-    const { all: variants, options } = processVariants();
+    const { all: variants, options } = processVariants(); // Destructure correctly
     const price = parseFloat(product.priceRange.minVariantPrice.amount);
     const compareAtPrice = parseFloat(product.compareAtPriceRange?.minVariantPrice?.amount || 0);
     const currencyCode = product.priceRange.minVariantPrice.currencyCode;
@@ -329,20 +338,20 @@ export async function fetchProductById(id) {
       id: product.id,
       handle: product.handle,
       title: product.title,
-      description: product.descriptionHtml,
+      descriptionHtml: product.descriptionHtml, // Keep as descriptionHtml for consistent rendering
       productType: product.productType,
       tags: product.tags,
       price,
-      sizes,
+      sizes, // If you still need this for some other logic
       compareAtPrice: compareAtPrice > price ? compareAtPrice : null,
       currencyCode,
-      discountPercentage: compareAtPrice > price 
+      discountPercentage: compareAtPrice > price
         ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100)
         : 0,
-      images,
-      variants,
-      options,
-      available: variants.some(v => v.available)
+      images, // These are the main product images
+      variants, // These are the processed variants with their image data
+      options, // These are the structured product options (Size, Color, etc.)
+      available: variants.some(v => v.available) // Check if any variant is available
     };
 
     console.log('Processed product data:', result);
