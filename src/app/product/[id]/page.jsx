@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +11,7 @@ import formatCurrency from "@/lib/formatCurrency";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+// Mapping of common color names to hex codes
 const colorMap = {
   red: '#ff0000',
   blue: '#0000ff',
@@ -50,7 +50,6 @@ const colorMap = {
   plum: '#dda0dd',
   wheat: '#f5deb3',
 };
-
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -119,30 +118,17 @@ export default function ProductPage() {
         }
         setSelectedOptions(initialOptions);
 
-        // --- DEBUG: Initial Load Image Logic ---
-        console.log("--- Initial Product Load ---");
-        console.log("Product Data:", data);
-        console.log("Default Variant:", defaultVariant);
-        console.log("Product Images:", data.images.map(img => img.url));
-
         // Set initial main image based on default variant's image or first product image
         if (defaultVariant && defaultVariant.image) {
-          console.log("Default Variant Image URL:", defaultVariant.image.url);
           const defaultImageIndex = data.images.findIndex(img => img.url === defaultVariant.image.url);
           if (defaultImageIndex !== -1) {
-            console.log("Found default variant image in product images at index:", defaultImageIndex);
             setSelectedImage(defaultImageIndex);
           } else {
-            console.warn("Default variant image not found in product.images. Falling back to first image.");
             setSelectedImage(0);
           }
         } else if (data.images.length > 0) {
-          console.log("No default variant image or default variant, using first product image.");
           setSelectedImage(0);
         }
-        console.log("Initial selectedImage index set to:", selectedImage);
-        // --- END DEBUG ---
-
 
         // Fetch and set recommended products
         const allProducts = await fetchProducts();
@@ -169,56 +155,35 @@ export default function ProductPage() {
   useEffect(() => {
     if (!product || !product.variants) return;
 
-    // --- DEBUG: Option Change Logic ---
-    console.log("\n--- selectedOptions Changed ---");
-    console.log("Current selectedOptions:", selectedOptions);
-    console.log("Product options:", product.options.map(o => o.name.toLowerCase()));
-    console.log("All product variants:", product.variants.map(v => ({ id: v.id, title: v.title, options: v.options, image: v.image?.url })));
-
-
     // Find the variant that matches all currently selected options
     const newVariant = product.variants.find(variant => {
       return product.options.every(option => {
         const optionName = option.name.toLowerCase();
-        // Check if the variant's option matches the selected option
-        // IMPORTANT: Ensure variant.options[optionName] exists before comparing
         return variant.options.hasOwnProperty(optionName) && variant.options[optionName] === selectedOptions[optionName];
       });
     });
-
-    console.log("Found newVariant:", newVariant ? { id: newVariant.id, title: newVariant.title, image: newVariant.image?.url, quantity: newVariant.quantity } : null); // Added quantity to debug log
 
     setSelectedVariant(newVariant || null); // Ensure it's null if no exact match
     setQuantity(1); // Reset quantity to 1 when variant changes
 
     // Logic to update the main displayed image based on the selected variant
     if (newVariant && newVariant.image) {
-      console.log("New Variant has an image:", newVariant.image.url);
       const imageIndex = product.images.findIndex(img => img.url === newVariant.image.url);
-      console.log("Attempting to find variant image in product.images. Index found:", imageIndex);
-
       if (imageIndex !== -1) {
         setSelectedImage(imageIndex);
-        console.log("Main image set to variant image at index:", imageIndex);
       } else {
-        console.warn(`Variant image for ${newVariant.title} not found in main product images. Falling back to first image.`);
         setSelectedImage(0); // Fallback to first image
       }
     } else if (product.images.length > 0) {
-      console.log("No new variant or new variant has no specific image. Falling back to first product image.");
       setSelectedImage(0);
     } else {
-      console.log("No images available for product.");
       setSelectedImage(0); // Ensure a default even if no images
     }
-    console.log("Current selectedImage index after option change:", selectedImage);
-    // --- END DEBUG ---
   }, [selectedOptions, product]); // Re-run when selected options or product data changes
 
   // Handles selection of product options (e.g., Size, Color)
   const handleOptionSelect = (optionName, value) => {
     const lowerCaseOptionName = optionName.toLowerCase();
-    console.log(`\n--- handleOptionSelect: ${optionName}: ${value} ---`);
     setSelectedOptions(prev => {
       const newOptions = { ...prev };
       newOptions[lowerCaseOptionName] = value;
@@ -239,16 +204,13 @@ export default function ProductPage() {
           });
 
           if (!isStillAvailable) {
-            console.log(`Deselecting ${currentOptName}: ${currentOptValue} because it's no longer available.`);
             delete newOptions[currentOptName]; // Deselect if no longer available
           }
         }
       });
-      console.log("New selectedOptions after handleOptionSelect:", newOptions);
       return newOptions; // The useEffect will react to this change
     });
   };
-
 
   const handleAddToCart = () => {
     if (!selectedVariant || !selectedVariant.available) {
@@ -256,20 +218,18 @@ export default function ProductPage() {
       return;
     }
 
-    // NEW STOCK CHECK HERE
     if (quantity > selectedVariant.quantity) {
       alert(`You can only add ${selectedVariant.quantity} of this item to your cart due to limited stock.`);
       setQuantity(selectedVariant.quantity > 0 ? selectedVariant.quantity : 1); // Set to max available or 1 if 0
       return;
     }
-    // END NEW STOCK CHECK
 
     addToCart({
       id: product.id,
       variantId: selectedVariant.id,
       title: product.title,
       price: selectedVariant.price,
-      // IMPORTANT: Use selectedVariant.image.url for cart image if available, otherwise product.images[selectedImage]?.url
+      // Use selectedVariant.image.url for cart image if available, otherwise fallback
       image: selectedVariant.image?.url || product.images[selectedImage]?.url || product.featuredImage?.url || '',
       variantTitle: selectedVariant.title,
       quantity: quantity,
@@ -278,7 +238,6 @@ export default function ProductPage() {
 
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000); // Hide toast after 3 seconds
-    console.log("Added to cart:", { selectedVariant, quantity });
   };
 
   const handleBuyNow = async () => {
@@ -287,13 +246,11 @@ export default function ProductPage() {
       return;
     }
 
-    // NEW STOCK CHECK HERE
     if (quantity > selectedVariant.quantity) {
       alert(`You can only buy ${selectedVariant.quantity} of this item due to limited stock.`);
       setQuantity(selectedVariant.quantity > 0 ? selectedVariant.quantity : 1); // Set to max available or 1 if 0
       return;
     }
-    // END NEW STOCK CHECK
 
     try {
       addToCart({
@@ -301,7 +258,7 @@ export default function ProductPage() {
         variantId: selectedVariant.id,
         title: product.title,
         price: selectedVariant.price,
-        // IMPORTANT: Use selectedVariant.image.url for cart image if available, otherwise product.images[selectedImage]?.url
+        // Use selectedVariant.image.url for cart image if available, otherwise fallback
         image: selectedVariant.image?.url || product.images[selectedImage]?.url || product.featuredImage?.url || '',
         variantTitle: selectedVariant.title,
         quantity: quantity,
@@ -317,7 +274,6 @@ export default function ProductPage() {
   const toggleWishlist = () => {
     if (isWishlisted) {
       removeFromWishlist(product.id);
-      console.log("Removed from wishlist:", product.id);
     } else {
       addToWishlist({
         id: product.id,
@@ -326,7 +282,6 @@ export default function ProductPage() {
         image: product.images[0]?.url || product.featuredImage?.url || '', // Wishlist usually uses main product image
         handle: product.handle
       });
-      console.log("Added to wishlist:", product.id);
     }
     setIsWishlisted(!isWishlisted);
   };
@@ -352,8 +307,6 @@ export default function ProductPage() {
         // Check if this variant, with its current option value, is available
         // when combined with ALL other currently selected options.
         const matchesOtherSelectedOptions = Object.entries(tempSelectedOptions).every(([key, val]) => {
-          // If this is the current option being evaluated, we've already set it.
-          // Otherwise, check if it matches the existing selected option.
           return variant.options.hasOwnProperty(key) && variant.options[key] === val;
         });
 
@@ -370,7 +323,6 @@ export default function ProductPage() {
     }
     return Array.from(availableValues);
   }, [product, selectedOptions]);
-
 
   if (loading) {
     return (
@@ -424,7 +376,6 @@ export default function ProductPage() {
               onClick={() => setZoomActive(!zoomActive)}
             >
               <Image
-                // Use selectedImage to determine the displayed image
                 src={product.images[selectedImage]?.url || '/placeholder-product.jpg'}
                 alt={product.title}
                 width={600}
@@ -461,7 +412,7 @@ export default function ProductPage() {
                 {product.images.map((img, index) => (
                   <motion.button
                     key={index}
-                    onClick={() => setSelectedImage(index)} // This allows manual selection of thumbnails
+                    onClick={() => setSelectedImage(index)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className={`aspect-square bg-white rounded-lg overflow-hidden border-2 transition-all ${
@@ -515,7 +466,7 @@ export default function ProductPage() {
               )}
             </div>
 
-            {product.descriptionHtml && ( // Changed from description to descriptionHtml for better rendering
+            {product.descriptionHtml && (
               <div
                 className="prose text-gray-700 mb-8 max-w-full"
                 dangerouslySetInnerHTML={{ __html: product.descriptionHtml }}
@@ -542,37 +493,21 @@ export default function ProductPage() {
                           const colorValue = isColorOption ? getColorValue(value) : null;
 
                           let stockIndicator = null;
-                          if (optionName === 'size' && isAvailable) {
-                            // Find the specific variant that would result from this size selection combined with other selected options
-                            const variantForSize = product.variants.find(v =>
-                              Object.entries({ ...selectedOptions, [optionName]: value }).every(([k, v_val]) =>
-                                v.options.hasOwnProperty(k) && v.options[k] === v_val
-                              )
-                            );
+                          // Find the specific variant that would result from this option selection combined with other selected options
+                          const potentialVariant = product.variants.find(v =>
+                            Object.entries({ ...selectedOptions, [optionName]: value }).every(([k, v_val]) =>
+                              v.options.hasOwnProperty(k) && v.options[k] === v_val
+                            )
+                          );
 
-                            if (variantForSize) {
-                              if (variantForSize.available && variantForSize.quantity > 0 && variantForSize.quantity <= 5) {
-                                stockIndicator = (
-                                  <span className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                    {variantForSize.quantity}
-                                  </span>
-                                );
-                              } else if (!variantForSize.available || variantForSize.quantity === 0) {
-                                stockIndicator = (
-                                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                    X
-                                  </span>
-                                );
-                              }
-                            }
-                          } else if (!isAvailable) {
+                          // Only show stock indicator for non-color options, or if a color option with limited stock
+                          if (!isColorOption && potentialVariant && potentialVariant.available && potentialVariant.quantity > 0 && potentialVariant.quantity <= 5) {
                             stockIndicator = (
-                              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                                X
+                              <span className="absolute -top-2 -right-2 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {potentialVariant.quantity}
                               </span>
                             );
                           }
-
 
                           return (
                             <motion.button
@@ -581,13 +516,13 @@ export default function ProductPage() {
                               disabled={!isAvailable}
                               whileHover={{ scale: isAvailable ? 1.05 : 1 }}
                               whileTap={{ scale: isAvailable ? 0.95 : 1 }}
-                              className={`flex items-center justify-center rounded-full transition-all relative ${
-                                isAvailable ? '' : 'opacity-50 cursor-not-allowed'
-                              } ${
-                                isColorOption
+                              className={`flex items-center justify-center rounded-full transition-all relative
+                                ${isAvailable ? '' : 'opacity-50 cursor-not-allowed'}
+                                ${isColorOption
                                   ? `border-2 ${isSelected ? 'border-black' : 'border-transparent'} ${isAvailable ? 'hover:ring-1 hover:ring-gray-300' : ''}`
-                                  : `py-2 px-4 border ${isSelected ? 'bg-black text-white border-black' : 'bg-white text-gray-900 border-gray-300 hover:border-black'}`
-                              }`}
+                                  : `py-2 px-4 border ${isSelected ? 'bg-black text-white border-black' : 'bg-white text-gray-900 border-gray-300 hover:border-black'}`}
+                                ${!isAvailable && optionName === 'size' ? 'line-through decoration-red-500 decoration-2' : ''}
+                              `}
                               style={
                                 isColorOption
                                   ? {
@@ -612,6 +547,7 @@ export default function ProductPage() {
                           );
                         })}
                       </div>
+                      {/* Stock indicators below the options */}
                       {optionName === 'size' && (
                         <div className="mt-2 text-xs text-gray-500 flex items-center gap-4">
                           {product.variants.some(v => v.options.size && v.available && v.quantity > 0 && v.quantity <= 5 && availableValues.includes(v.options.size)) && (
@@ -671,7 +607,7 @@ export default function ProductPage() {
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
               <motion.button
                 onClick={handleAddToCart}
-                disabled={!selectedVariant?.available || (selectedVariant?.quantity === 0 && selectedVariant?.available)} // Disable if not available or quantity is 0
+                disabled={!selectedVariant?.available || (selectedVariant?.quantity === 0 && selectedVariant?.available)}
                 whileHover={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 1.02 } : {}}
                 whileTap={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 0.98 } : {}}
                 className={`flex-1 py-4 px-6 rounded-lg font-bold text-lg transition-all flex items-center justify-center gap-2 ${
@@ -685,7 +621,7 @@ export default function ProductPage() {
               </motion.button>
               <motion.button
                 onClick={handleBuyNow}
-                disabled={!selectedVariant?.available || (selectedVariant?.quantity === 0 && selectedVariant?.available)} // Disable if not available or quantity is 0
+                disabled={!selectedVariant?.available || (selectedVariant?.quantity === 0 && selectedVariant?.available)}
                 whileHover={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 1.02 } : {}}
                 whileTap={selectedVariant?.available && selectedVariant?.quantity > 0 ? { scale: 0.98 } : {}}
                 className={`flex-1 py-4 px-6 rounded-lg font-bold text-lg transition-all ${
@@ -700,7 +636,7 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {recommendedProducts.length > 0 && (
+      {recommendedProducts.length > 0 && (
           <div className="border-t border-gray-200 pt-16">
             <h2 className="text-2xl font-bold mb-8 text-gray-900">You May Also Like</h2>
             <ProductGrid

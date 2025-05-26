@@ -111,7 +111,7 @@ export default function Hero() {
           variants={textVariants}
           className="flex-1"
         >
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight mb-6">
             <motion.span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B6B] to-[#8338EC] overflow-hidden">
               {title1.split("").map((letter, index) => (
                 <motion.span
@@ -140,7 +140,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.8 }}
-            className="mt-6 text-xl text-[#5A5A5A] max-w-md leading-relaxed font-medium"
+            className="mt-6 text-lg sm:text-xl text-[#5A5A5A] max-w-md leading-relaxed font-medium"
           >
             Bold silhouettes, vibrant colors, and feminine energy — discover statement pieces at Western Palms.
           </motion.p>
@@ -159,7 +159,7 @@ export default function Hero() {
               <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B] rounded-full blur opacity-75 group-hover:opacity-100 transition duration-500" />
               <Link
                 href="/shop"
-                className="relative px-10 py-4 bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B] text-white text-sm font-bold uppercase tracking-widest rounded-full hover:opacity-90 transition-all duration-300 shadow-lg"
+                className="relative px-8 sm:px-10 py-3 sm:py-4 bg-gradient-to-r from-[#FF6B6B] to-[#FFBE0B] text-white text-sm font-bold uppercase tracking-widest rounded-full hover:opacity-90 transition-all duration-300 shadow-lg"
               >
                 Shop Collection
               </Link>
